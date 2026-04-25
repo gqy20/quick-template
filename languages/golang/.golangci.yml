@@ -1,0 +1,48 @@
+run:
+  timeout: 5m
+  issues-exit-code: 1
+  tests: true
+
+linters:
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - gocritic
+    - gofmt
+    - goimports
+    - misspell
+    - revive
+
+linters-settings:
+  goimports:
+    local-prefixes: "{{#if repository_provider=='https://github.com'}}github.com/{{repository_username}}/{{project_slug}}{{#else}}{{repository_provider}}/{{repository_username}}/{{project_slug}}{{#endif}}"
+  revive:
+    rules:
+      - name: exported
+      - name: indent-by-error
+      - name: context-as-argument
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - style
+      - performance
+
+issues:
+  exclude-rules:
+    # 排除测试文件的某些规则
+    - path: _test\.go
+      linters:
+        - gosec
+        - dupl
+    # 排除生成的文件
+    - path: ".*_gen\\.go$"
+      linters:
+        - gochecknoglobals
+        - gochecknoinits
+
+severity:
+  default-severity: error

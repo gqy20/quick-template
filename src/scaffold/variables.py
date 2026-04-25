@@ -28,3 +28,4 @@ def compute_derived(vars_dict: dict) -> None:
     vars_dict["package_name"] = slug.replace("-", "_")
     vars_dict["repository_username"] = vars_dict["author_name"].lower().replace(" ", "-")
     vars_dict["copyright_date"] = str(date.today().year)
+    vars_dict["python_version_no_dot"] = vars_dict["python_version"].replace(".", "")

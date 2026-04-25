@@ -1,0 +1,4 @@
+{"name": "{{ package_name }}", "version": "{{ version }}", "description": "{{ description }}", "type": "module", "main": "./dist/index.js", "scripts": {"dev": "tsx watch src/index.ts", "build": "tsup", "test": "vitest run", "test:watch": "vitest", "check": "biome check .", "format": "biome format --write .", "lint": "biome lint ."}, "keywords": [], "author": "{{ author_name }} <{{ author_email }}>", "license": "{{ license }}", "dependencies": {{#if add_api}}{
+    "hono": "^4.7.0"
+  }{{#else}}
+  {}{{#endif}}, "devDependencies": {"@types/node": "^22.0.0", "biome": "^0.3.3", "tsup": "^8.3.0", "tsx": "^4.19.0", "typescript": "^5.7.0", "vitest": "^2.1.0"}}

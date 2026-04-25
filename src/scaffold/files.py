@@ -28,14 +28,13 @@ def copy_template_dir(src_dir: Path | str, dst_base: Path | str, vars_dict: dict
         rel = item.relative_to(src)
         if any(part in _SKIP_DIRS for part in rel.parts):
             continue
-        rendered_name = render(str(rel.name), vars_dict)
-        rel_with_new_name = rel.parent / rendered_name if rendered_name != rel.name else rel
-        dst = dst_base / rel_with_new_name
+        rendered_parts = [render(str(p), vars_dict) for p in rel.parts]
+        dst = dst_base / Path(*rendered_parts)
 
         dst.parent.mkdir(parents=True, exist_ok=True)
         content = item.read_text(encoding="utf-8")
         rendered = process_file(content, vars_dict)
-        if not rendered:
+        if not rendered.strip():
             continue
         dst.write_text(rendered, encoding="utf-8")
 
