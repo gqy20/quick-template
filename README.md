@@ -1,22 +1,27 @@
-# quick-py
+# quick-template
 
 [![Copier](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/copier-org/copier/master/img/badge/badge-grayscale-inverted-border-orange.json)](https://github.com/copier-org/copier)
-[![Python 3.13+](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
 
-> 现代化 Python 项目模板 - 基于 Copier，秒级生成规范项目
+> 多语言项目模板 - 支持 Python / Go / TypeScript，基于 Copier 秒级生成规范项目
 
-一个专业的 Python 项目脚手架模板，使用 [Copier](https://copier.readthedocs.io/) 生成规范化的 Python 项目。
+一个专业的多语言项目脚手架模板，使用 [Copier](https://copier.readthedocs.io/) 生成规范化的项目。
+
+## 支持的语言
+
+| 语言 | 包管理 | Lint | 测试 | API 框架 |
+|------|--------|------|------|----------|
+| **Python** | uv | ruff | pytest | FastAPI |
+| **Go** | go mod | golangci-lint | go test | Gin |
+| **TypeScript** | npm | Biome | vitest | Hono |
 
 ## 特性
 
-- 📦 **uv** - 极速包管理器（比 pip 快 10-100 倍）
-- 🏗️ **src layout** - 标准项目结构
-- ⚡ **ruff** - 统一代码检查和格式化
-- ✅ **pytest** - 测试框架
-- 📝 **rich** - 美观的日志输出
-- 🪝 **pre-commit** - 提交前检查
-- 🔄 **CI/CD** - GitHub/GitLab CI 配置
-- 🚀 **FastAPI** - 可选的 Web 开发示例
+- 🌍 **多语言** - 一套模板支持 Python / Go / TypeScript
+- 📦 **现代工具链** - 每种语言使用当前最佳工具
+- 🏗️ **标准结构** - 遵循各语言社区推荐的项目布局
+- ⚡ **统一命令** - `make install/check/test/run` 跨语言一致
+- 🔄 **CI/CD** - GitHub Actions 自动化
+- 🤖 **AI 友好** - 内置 Claude Code 指令配置
 - 🔄 **模板更新** - 支持从模板合并更新
 
 ## 快速开始
@@ -26,95 +31,99 @@
 ```bash
 pip install copier
 # 或
-uv pip install copier
+uv tool install copier
 ```
 
 ### 创建项目
 
 ```bash
 # 从 GitHub 创建（推荐）
-copier copy gh:gqy20/quick-py my-project
+copier copy gh:gqy20/quick-template my-project
 
-# 或使用完整 URL
-copier copy https://github.com/gqy20/quick-py my-project
-
-# 或使用 pip 安装 copier 后从 GitHub 创建
-pip install copier
-copier copy gh:gqy20/quick-py my-project
+# 选择语言后自动生成对应的项目结构
 ```
 
-Copier 会交互式询问以下信息：
+Copier 会交互式询问：
 
 | 变量 | 说明 | 默认值 |
 |------|------|--------|
+| `language` | 编程语言 | python |
 | `project_name` | 项目名称 | My Project |
-| `author_name` | 作者名称 | Your Name |
-| `python_version` | Python 版本 | 3.13 |
-| `ci_provider` | CI/CD 提供商 | GitHub CI |
-| `add_api` | 添加 FastAPI 示例 | true |
+| `add_api` | 添加 API 示例 | true |
+| `add_cli` | 添加 CLI 示例 | false |
 | `license` | 开源协议 | MIT |
 
 ## 生成的项目结构
 
+### Python 项目
 ```
 my-project/
-├── .github/workflows/     # GitHub CI（可选）
-├── .gitlab-ci.yml         # GitLab CI（可选）
-├── src/my_package/        # 源代码
-├── tests/                 # 测试
-├── docs/                  # 文档
-├── scripts/               # 工具脚本
-├── .pre-commit-config.yaml
-├── pyproject.toml
-└── README.md
+├── src/my_package/        # 源代码（src layout）
+├── tests/                 # pytest 测试
+├── pyproject.toml         # 项目配置（uv + ruff）
+└── Makefile               # 统一构建命令
+```
+
+### Go 项目
+```
+my-project/
+├── cmd/myapp/main.go      # 入口点
+├── internal/              # 私有代码
+│   ├── handler/           # HTTP handler (Gin)
+│   ├── service/           # 业务逻辑
+│   └── model/             # 数据模型
+├── pkg/logger/            # 可导出库
+├── tests/                 # 表驱动测试
+├── go.mod                 # 模块定义
+└── Makefile
+```
+
+### TypeScript 项目
+```
+my-project/
+├── src/                   # 源码（ESM）
+│   ├── index.ts           # 入口
+│   ├── core.ts            # 核心功能
+│   └── api/router.ts      # Hono 路由（可选）
+├── tests/                 # vitest 测试
+├── package.json           # npm 配置（Biome + vitest）
+├── tsconfig.json          # TypeScript 配置
+└── Makefile
+```
+
+## 统一的 Make 命令
+
+无论选择哪种语言，都使用相同的命令接口：
+
+```bash
+make install    # 安装依赖
+make check      # 代码检查
+make format     # 格式化
+make typecheck   # 类型检查
+make test       # 运行测试
+make test-cov   # 测试 + 覆盖率
+make run        # 运行项目
+make clean      # 清理缓存
+make all        # 全量检查
 ```
 
 ## 模板更新
-
-从模板创建项目后，可以合并模板更新：
 
 ```bash
 cd my-project
 copier update
 ```
 
-Copier 会智能合并更新，保留你的自定义修改。
-
-## 模板变量
-
-### 项目信息
-- `project_name` - 项目名称
-- `project_slug` - 项目 slug（URL友好）
-- `package_name` - Python 包名
-- `description` - 项目描述
-- `version` - 初始版本号
-
-### 作者信息
-- `author_name` - 作者名称
-- `author_email` - 作者邮箱
-
-### 配置选项
-- `python_version` - Python 版本 (3.11/3.12/3.13)
-- `license` - 开源协议 (MIT/BSD-3-Clause/ISC/Apache-2.0/GPL-3.0)
-- `ci_provider` - CI/CD 提供商 (GitHub CI/GitLab CI/None)
-- `add_api` - 添加 FastAPI 示例
-- `add_cli` - 添加 CLI 示例
-- `line_length` - 代码行长度限制
-
-### 仓库配置
-- `repository_provider` - 仓库提供商 URL
-- `repository_username` - 仓库用户名
-
 ## 开发
 
-查看 [CLAUDE.md](CLAUDE.md) 了解模板开发规范。
+查看 [CLAUDE.md](.claude/CLAUDE.md) 了解模板开发规范。
 
 ## 许可证
 
 MIT
 
-Copyright © 2024 gqy20
+Copyright © {{ now().year }} gqy20
 
 ---
 
-**GitHub:** https://github.com/gqy20/quick-py
+**GitHub:** https://github.com/gqy20/quick-template

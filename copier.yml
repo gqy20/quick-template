@@ -1,14 +1,9 @@
 # ====== Copier 配置 ======
-# 模板子目录（分离模板元数据和模板代码）
+# 多语言项目模板（Python / Go / TypeScript）
 _subdirectory: template
-
-# 模板后缀（空字符串表示所有文件都被处理）
 _templates_suffix: ""
-
-# 最低 Copier 版本要求
 _min_copier_version: "9.0.0"
 
-# 排除的文件/目录模式
 _exclude:
   - "*.pyc"
   - "__pycache__"
@@ -31,12 +26,22 @@ _exclude:
   - ".mypy_cache"
   - ".pytest_cache"
   - ".ruff_cache"
+  - "node_modules"
   - "copier.yml"
 
-# 如果已存在则跳过的文件
 _skip_if_exists:
   - .env
   - .secrets.yaml
+
+# ====== 语言选择 ======
+language:
+  type: str
+  default: python
+  help: 选择主要编程语言
+  choices:
+    python: "Python (uv + ruff + FastAPI)"
+    golang: "Go (go mod + Gin + Cobra)"
+    typescript: "TypeScript (npm + Biome + Hono)"
 
 # ====== 项目信息 ======
 project_name:
@@ -47,12 +52,12 @@ project_name:
 project_slug:
   type: str
   default: "{{ project_name|lower|replace(' ', '-')|replace('_', '-') }}"
-  help: 项目 slug（用于目录名）
+  help: 项目 slug（用于目录名和模块名）
 
 package_name:
   type: str
   default: "{{ project_slug.replace('-', '_') }}"
-  help: Python 包名
+  help: 包名（Python 模块名 / Go import path 前缀 / npm 包名）"
 
 # ====== 作者信息 ======
 author_name:
@@ -77,6 +82,7 @@ version:
   default: "0.1.0"
   help: 初始版本号
 
+# ====== 语言特定版本 ======
 python_version:
   type: str
   default: "3.13"
@@ -85,6 +91,19 @@ python_version:
     - "3.11"
     - "3.12"
     - "3.13"
+  when: "{{ language == 'python' }}"
+
+go_version:
+  type: str
+  default: "1.24"
+  help: Go 版本要求
+  when: "{{ language == 'golang' }}"
+
+node_version:
+  type: str
+  default: "22"
+  help: Node.js 版本要求
+  when: "{{ language == 'typescript' }}"
 
 # ====== 许可证 ======
 license:
@@ -114,12 +133,12 @@ repository_username:
 add_api:
   type: bool
   default: true
-  help: 是否添加 FastAPI 示例
+  help: "{% if language == 'python' %}是否添加 FastAPI 示例{% elif language == 'golang' %}是否添加 Gin API 示例{% else %}是否添加 Hono API 示例{% endif %}"
 
 add_cli:
   type: bool
   default: false
-  help: 是否添加 CLI 示例
+  help: "{% if language == 'golang' %}是否添加 Cobra CLI 示例{% elif language == 'typescript' %}是否添加 Commander CLI 示例{% else %}是否添加 CLI 示例{% endif %}"
 
 # ====== 代码规范 ======
 line_length:
@@ -136,7 +155,7 @@ copyright_date:
 # ====== 生成后消息 ======
 _message_after_copy: |
   {{ "\n" }}============================================================
-  项目 "{{ project_name }}" 创建成功！
+  项目 "{{ project_name }}" 创建成功！[{{ language }}]
   ============================================================
 
   下一步：
@@ -144,11 +163,19 @@ _message_after_copy: |
   1. 进入项目目录：
      $ cd {{ _copier_conf.dst_path }}
 
-  2. 创建虚拟环境并安装依赖：
+  2. 安装依赖：
      $ make install
 
+  {% if language == 'python' -%}
   3. 安装 pre-commit 钩子：
      $ .venv/bin/pre-commit install
+  {% elif language == 'golang' -%}
+  3. 下载依赖：
+     $ make install
+  {% elif language == 'typescript' -%}
+  3. 安装依赖：
+     $ npm install
+  {% endif -%}
 
   4. 运行代码检查：
      $ make check
@@ -157,8 +184,16 @@ _message_after_copy: |
      $ make test
 
   {% if add_api -%}
-  6. 启动 FastAPI 服务器（可选）：
+  {% if language == 'python' -%}
+  6. 启动 API 服务器（可选）：
      $ .venv/bin/python -m {{ package_name }}.api
+  {% elif language == 'golang' -%}
+  6. 启动 API 服务器（可选）：
+     $ go run ./cmd/{{ project_slug }}
+  {% elif language == 'typescript' -%}
+  6. 启动开发服务器（可选）：
+     $ npm run dev
+  {% endif -%}
   {% endif -%}
 
   ============================================================

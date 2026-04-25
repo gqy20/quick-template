@@ -1,3 +1,4 @@
+{% if language == 'python' -%}
 {% raw -%}
 name: Publish to PyPI
 
@@ -30,7 +31,7 @@ jobs:
         uses: astral-sh/setup-uv@v2
         with:
           version: "latest"
-          python-version: "3.13"
+          python-version: "{{ python_version }}"
 
       - name: Install dependencies
         run: uv pip install -e ".[dev]"
@@ -72,7 +73,7 @@ jobs:
         uses: astral-sh/setup-uv@v2
         with:
           version: "latest"
-          python-version: "3.13"
+          python-version: "{{ python_version }}"
 
       - name: Build distribution packages
         run: uv build
@@ -109,3 +110,42 @@ jobs:
           verbose: true
           print-hash: true
 {% endraw %}
+
+{%- elif language == 'typescript' -%}
+name: Publish to npm
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "{{ node_version }}"
+          registry-url: https://registry.npmjs.org/
+
+      - run: npm ci
+
+      - run: npm test
+
+      - run: npm run build
+
+      - name: 发布到 npm
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+{%- elif language == 'golang' -%}
+# Go 项目通常不需要发布工作流
+# 如需发布，可在此配置 Docker 构建或 goreleaser
+{%- endif %}

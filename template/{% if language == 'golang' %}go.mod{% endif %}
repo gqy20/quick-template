@@ -1,0 +1,8 @@
+module {% if repository_provider == 'https://github.com' %}github.com/{{ repository_username }}/{{ project_slug }}{% else %}{{ repository_provider }}/{{ repository_username }}/{{ project_slug }}{% endif %}
+
+go {{ go_version }}
+
+require (
+	github.com/gin-contrib/cors v1.7.2
+	github.com/gin-gonic/gin v1.10.0
+)

@@ -1,3 +1,4 @@
+{% if language == 'python' -%}
 {% raw -%}
 name: Release
 
@@ -24,7 +25,7 @@ jobs:
         uses: astral-sh/setup-uv@v2
         with:
           version: "latest"
-          python-version: "3.13"
+          python-version: "{{ python_version }}"
 
       - name: Install dependencies
         run: uv pip install -e ".[dev]"
@@ -89,11 +90,53 @@ jobs:
             dist/*.whl
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Comment on related issues
-        if: success()
-        run: |
-          echo "Release ${{ steps.tag.outputs.TAG_NAME }} created successfully!"
-          echo "Distribution files:"
-          ls -lh dist/
 {% endraw %}
+
+{%- else -%}
+# 非Python 项目使用通用 Release 工作流
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract tag name
+        id: tag
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
+          else
+            CHANGELOG=$(git log ${PREV_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
+          fi
+          echo "$CHANGELOG" > changelog.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.TAG_NAME }}
+          name: Release ${{ steps.tag.outputs.TAG_NAME }}
+          body_path: changelog.txt
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+{%- endif %}

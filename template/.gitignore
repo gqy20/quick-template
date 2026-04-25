@@ -1,12 +1,10 @@
-# Byte-compiled / optimized / DLL files
+# ========== 通用忽略 ==========
+{% if language == 'python' -%}
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
 *.so
-
-# Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -20,22 +18,10 @@ parts/
 sdist/
 var/
 wheels/
-pip-wheel-metadata/
-share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
 MANIFEST
-
-# PyInstaller
-*.manifest
-*.spec
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
 htmlcov/
 .tox/
 .nox/
@@ -48,81 +34,41 @@ coverage.xml
 *.py,cover
 .hypothesis/
 .pytest_cache/
-
-# Translations
-*.mo
-*.pot
-
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-# pyenv
-# .python-version  # 注释掉以允许提交 Python 版本文件（方案 B：CI 中固定版本）
-
-# pipenv
-Pipfile.lock
-
-# PEP 582
-__pypackages__/
-
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
 .mypy_cache/
-.dmypy.json
-dmypy.json
+.ruff_cache/
+uv.lock
+logs/
 
-# Pyre type checker
-.pyre/
+{%- elif language == 'golang' -%}
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+coverage.out
+coverage.html
 
-# IDEs
+{%- elif language == 'typescript' -%}
+# TypeScript / Node.js
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+{%- endif %}
+
+# ========== 通用 ==========
+# 环境变量
+.env
+.env.local
+.env.*.local
+.secrets/
+credentials.json
+
+# IDE
 .vscode/
 .idea/
 *.swp
@@ -133,29 +79,11 @@ dmypy.json
 .DS_Store
 Thumbs.db
 
-# uv
-uv.lock
-logs/
-
-# 现代工具
-.ruff_cache/
-.hatch/
-
-# 安全敏感文件
-.env.local
-.env.*.local
-*.pem
-*.key
-*.cert
-.secrets/
-credentials.json
-
 # 临时文件
 *.tmp
 *.bak
 *.orig
 *.rej
-*.patch
 
 # 数据库文件
 *.db
