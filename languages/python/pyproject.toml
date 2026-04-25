@@ -33,18 +33,19 @@ dependencies = [
 {{#endif}}
 ]
 
-[project.optional-dependencies]
+[project.urls]
+Homepage = "{{ repository_provider }}/{{ repository_username }}/{{ project_slug }}"
+Repository = "{{ repository_provider }}/{{ repository_username }}/{{ project_slug }}.git"
+
+[dependency-groups]
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
     "ruff>=0.1.0",
-    "httpx>=0.24.0",
+    "httpx>=0.24.0"{{#if add_api}},
     "mypy>=1.0.0",
+    "types-ujson>=0.0.19.9"{{#endif}},
 ]
-
-[project.urls]
-Homepage = "{{ repository_provider }}/{{ repository_username }}/{{ project_slug }}"
-Repository = "{{ repository_provider }}/{{ repository_username }}/{{ project_slug }}.git"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/{{ package_name }}"]
@@ -54,7 +55,7 @@ line-length = {{ line_length }}
 target-version = "py{{python_version_no_dot}}"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "N", "W", "UP"]
+select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "C4", "ARG", "SLF"]
 ignore = []
 
 [tool.ruff.format]
@@ -79,13 +80,14 @@ exclude_lines = [
     "raise AssertionError",
     "raise NotImplementedError",
 ]
-
+{{#if add_api}}
 [tool.mypy]
 python_version = "{{ python_version }}"
 warn_return_any = true
 warn_unused_configs = true
-disallow_untyped_defs = false
-disallow_incomplete_defs = false
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_calls = true
 check_untyped_defs = true
 no_implicit_optional = true
 warn_redundant_casts = true
@@ -97,3 +99,4 @@ strict_optional = true
 [[tool.mypy.overrides]]
 module = "tests.*"
 disallow_untyped_defs = false
+{{#endif}}

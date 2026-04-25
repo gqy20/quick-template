@@ -1,5 +1,4 @@
-{{#if add_api}}
-"""FastAPI 应用示例 - 展示标准 API 开发规范。
+{{#if add_api}}"""FastAPI 应用示例 - 展示标准 API 开发规范。
 
 本模块提供一个规范的 FastAPI 应用示例，包括：
 - 统一的响应格式
@@ -29,7 +28,7 @@ logger = get_logger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     """应用生命周期管理。"""
     # 启动时执行
     logger.info("FastAPI 应用启动")
@@ -121,7 +120,9 @@ class UserResponse(BaseModel):
 class UserUpdate(BaseModel):
     """更新用户请求模型。"""
 
-    model_config = ConfigDict(json_schema_extra={"example": {"name": "李四", "age": 30}})
+    model_config = ConfigDict(
+        json_schema_extra={"example": {"name": "李四", "age": 30}}
+    )
 
     name: str | None = Field(None, min_length=1, max_length=50, description="用户名")
     email: str | None = Field(None, description="邮箱地址")
@@ -132,7 +133,7 @@ class UserUpdate(BaseModel):
 
 
 @app.exception_handler(HTTPException)
-async def http_exception_handler(request: Request, exc: HTTPException):
+async def http_exception_handler(_request: Request, exc: HTTPException):
     """处理 HTTP 异常。"""
     logger.error(f"HTTP 异常: {exc.status_code} - {exc.detail}")
     return JSONResponse(
@@ -146,7 +147,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 
 
 @app.exception_handler(Exception)
-async def general_exception_handler(request: Request, exc: Exception):
+async def general_exception_handler(_request: Request, exc: Exception):
     """处理一般异常。"""
     logger.error(f"服务器错误: {str(exc)}", exc_info=True)
     return JSONResponse(

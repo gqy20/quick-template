@@ -1,40 +1,24 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+本文件记录项目的所有重要变更。
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+格式基于 [Keep a Changelog](https://keepachangelog.com/)，
+版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
 ## [Unreleased]
 
-### Planned
-- Additional logging backends
-- Configuration file support
-- More examples
+### Added
+- 初始项目结构
 
-## [0.1.0] - 2025-10-22
+## [0.1.0] - {{copyright_date}}
 
 ### Added
-- Initial project structure with src layout
-- Core functionality (greet and add functions)
-- Comprehensive testing with pytest
-- Code quality tools: black, isort, ruff
-- Rich logging module with file and console output
-- Enhanced terminal output with rich formatting
-- Pre-commit hooks for code quality
-- GitHub Actions CI workflow
-- Automatic GitHub Release creation on tag push
-- Automatic PyPI publishing workflow
-- Detailed documentation and examples
-
-### Features
-- 📦 Project management with uv
-- 🎨 Code formatting with black and isort
-- ⚡ Fast linting with ruff
-- ✅ 100% test coverage with pytest
-- 📝 Rich formatted logging system
-- 🚀 Automated CI/CD with GitHub Actions
-- 📊 Beautiful terminal output with rich library
-
-[unreleased]: https://github.com/gqy22/py_kit/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/gqy22/py_kit/releases/tag/v0.1.0
+- 初始项目结构（src layout）
+- 核心功能模块
+- pytest 测试套件
+- ruff 代码检查与格式化
+- Rich 日志系统
+- GitHub Actions CI 工作流
+{{#if add_api}}
+- FastAPI 应用示例
+{{#endif}}

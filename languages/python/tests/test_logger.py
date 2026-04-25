@@ -48,7 +48,7 @@ class TestLoggerSetup:
         assert logger.name == "test_get_logger"
         assert len(logger.handlers) > 0
 
-    def test_logger_levels(self, tmp_path, capsys):
+    def test_logger_levels(self, tmp_path):
         """测试不同的日志级别。"""
         logger = setup_logger(
             name="test_levels",
@@ -79,8 +79,8 @@ class TestConsoleFunctions:
     def test_print_success(self, capsys):
         """测试成功消息打印。"""
         print_success("测试成功")
-        # 只验证不会引发错误
-        # 使用 rich 格式的实际输出测试比较复杂
+        captured = capsys.readouterr()
+        assert "测试成功" in captured.out or "成功" in captured.out
 
     def test_print_error(self):
         """测试错误消息打印。"""
