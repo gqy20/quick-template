@@ -6,7 +6,7 @@ requires-python = ">=3.11"
 dependencies = []
 
 [project.scripts]
-quick-template = "scaffold:main"
+quick-template = "scaffold.cli:main"
 
 [build-system]
 requires = ["hatchling"]

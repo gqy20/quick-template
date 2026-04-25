@@ -1,10 +1,12 @@
-"""CLI 入口：参数解析和变量构建。"""
+"""CLI 入口：参数解析、变量构建和脚手架执行。"""
 
 import argparse
 from pathlib import Path
 
-from .files import load_data_file
+from .files import copy_template_dir, load_data_file
 from .variables import DEFAULTS, compute_derived
+
+TEMPLATE_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -34,3 +36,21 @@ def build_vars(
 
     compute_derived(vars_dict)
     return vars_dict
+
+
+def main(argv: list[str] | None = None) -> None:
+    args = parse_args(argv)
+    vars_dict = build_vars(args.data_file, args.language, args.add_api, args.output_dir)
+
+    output = args.output_dir or Path.cwd() / vars_dict["project_slug"]
+    output.mkdir(parents=True, exist_ok=True)
+
+    lang_dir = TEMPLATE_ROOT / "languages" / args.language
+    shared_dir = TEMPLATE_ROOT / "shared"
+
+    if shared_dir.exists():
+        copy_template_dir(shared_dir, output, vars_dict)
+    if lang_dir.exists():
+        copy_template_dir(lang_dir, output, vars_dict)
+
+    print(f"Project generated: {output}")
