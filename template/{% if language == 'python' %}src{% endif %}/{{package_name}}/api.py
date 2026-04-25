@@ -8,7 +8,6 @@
 - 日志记录
 - API 文档
 """
-
 {% if add_api -%}
 from contextlib import asynccontextmanager
 from datetime import datetime
@@ -410,5 +409,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-{% endif -%}
-
+{% endif %}
