@@ -1,4 +1,4 @@
-name: 测试 Copier 模板
+name: 测试模板生成
 
 on:
   push:
@@ -20,16 +20,16 @@ jobs:
         include:
           - language: python
             with-api: true
-            with-cli: false
           - language: python
             with-api: false
-            with-cli: true
           - language: golang
             with-api: true
-            with-cli: false
+          - language: golang
+            with-api: false
           - language: typescript
             with-api: true
-            with-cli: false
+          - language: typescript
+            with-api: false
 
     steps:
       - name: 检出代码
@@ -42,12 +42,11 @@ jobs:
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: 使用 copier 生成项目（Python API）
+      - name: 使用 scaffold 引擎生成项目
         id: generate
         run: |
           export PATH="$HOME/.local/bin:$PATH"
-          OUTPUT=$(uv run --with copier test_template.py \
-            "${{ matrix.language }}" "${{ matrix.with-api }}" "${{ matrix.with_cli }}")
+          OUTPUT=$(uv run test_template.py "${{ matrix.language }}" "${{ matrix.with-api }}")
           echo "$OUTPUT"
           DST_DIR=$(echo "$OUTPUT" | grep "^OK:" | cut -d: -f2-)
           echo "dst_dir=$DST_DIR" >> $GITHUB_OUTPUT

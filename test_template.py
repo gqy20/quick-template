@@ -5,15 +5,15 @@ import sys
 import tempfile
 from pathlib import Path
 
-import copier
+from scaffold.cli import build_vars
+from scaffold.files import copy_template_dir
 
 TEMPLATE_ROOT = Path(__file__).resolve().parent
 
 
 def test_generate(language: str, add_api: bool = True, add_cli: bool = False) -> Path:
-    """使用 copier Python API 生成项目，避免 CLI 的 Pydantic 验证问题"""
+    """使用 scaffold 引擎生成项目。"""
     data = {
-        "language": language,
         "project_name": "Test Project",
         "author_name": "Test Author",
         "author_email": "test@example.com",
@@ -21,10 +21,7 @@ def test_generate(language: str, add_api: bool = True, add_cli: bool = False) ->
         "version": "0.1.0",
         "license": "MIT",
         "line_length": 88,
-        "add_api": add_api,
-        "add_cli": add_cli,
     }
-    # 仅提供对应语言的版本变量
     if language == "python":
         data["python_version"] = "3.13"
     elif language == "golang":
@@ -32,18 +29,23 @@ def test_generate(language: str, add_api: bool = True, add_cli: bool = False) ->
     elif language == "typescript":
         data["node_version"] = "22"
 
+    vars_dict = build_vars(None, language, add_api, None)
+    vars_dict.update(data)
+    # Re-derive after updating base vars
+    from scaffold.variables import compute_derived
+    compute_derived(vars_dict)
+
     dst = Path(tempfile.mkdtemp(prefix=f"quick-test-{language}-"))
     print(f"  生成 {language} 项目 → {dst}")
 
-    copier.run_copy(
-        str(TEMPLATE_ROOT),
-        str(dst),
-        data=data,
-        defaults=True,
-        overwrite=True,
-        unsafe=True,
-        vcs_ref="HEAD",
-    )
+    lang_dir = TEMPLATE_ROOT / "languages" / language
+    shared_dir = TEMPLATE_ROOT / "shared"
+
+    if lang_dir.exists():
+        copy_template_dir(lang_dir, dst, vars_dict)
+    if shared_dir.exists():
+        copy_template_dir(shared_dir, dst, vars_dict)
+
     return dst
 
 
