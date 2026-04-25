@@ -24,12 +24,18 @@ Thumbs.db
 *.orig
 *.rej
 
+# Python
+__pycache__/
+*.pyc
+*.pyo
+uv.lock
+
 # 数据库文件
 *.db
 *.sqlite
 *.sqlite3
 
-# Copier 答案文件（用户项目）
+# 答案文件（用户项目）
 .copier-answers.yml
 
 # 模板测试输出
