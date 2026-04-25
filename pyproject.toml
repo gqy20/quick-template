@@ -1,0 +1,9 @@
+[project]
+name = "quick-template-dev"
+version = "0.1.0"
+description = "Dev environment for quick-template (Copier multi-language project template)"
+requires-python = ">=3.11"
+dependencies = []
+
+[dependency-groups]
+dev = ["copier>=9.0"]

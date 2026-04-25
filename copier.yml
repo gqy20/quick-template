@@ -39,9 +39,9 @@ language:
   default: python
   help: 选择主要编程语言
   choices:
-    python: "Python (uv + ruff + FastAPI)"
-    golang: "Go (go mod + Gin + Cobra)"
-    typescript: "TypeScript (npm + Biome + Hono)"
+    "Python (uv + ruff + FastAPI)": python
+    "Go (go mod + Gin + Cobra)": golang
+    "TypeScript (npm + Biome + Hono)": typescript
 
 # ====== 项目信息 ======
 project_name:

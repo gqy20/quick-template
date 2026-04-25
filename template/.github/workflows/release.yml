@@ -93,6 +93,7 @@ jobs:
 {% endraw %}
 
 {%- else -%}
+{% raw -%}
 # 非Python 项目使用通用 Release 工作流
 name: Release
 
@@ -139,4 +140,5 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+{% endraw %}
 {%- endif %}

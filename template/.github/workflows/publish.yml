@@ -112,6 +112,7 @@ jobs:
 {% endraw %}
 
 {%- elif language == 'typescript' -%}
+{% raw -%}
 name: Publish to npm
 
 on:
@@ -144,6 +145,7 @@ jobs:
         run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+{% endraw %}
 
 {%- elif language == 'golang' -%}
 # Go 项目通常不需要发布工作流
