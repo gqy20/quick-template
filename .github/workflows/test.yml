@@ -48,6 +48,7 @@ jobs:
           copier copy --vcs-ref HEAD . /tmp/test-${{ matrix.language }} \
             --data language=${{ matrix.language }} \
             --data project_name="Test Project" \
+            --data project_slug="test-project" \
             --data package_name="test_package" \
             --data author_name="Test Author" \
             --data author_email="test@example.com" \
@@ -57,6 +58,10 @@ jobs:
             --data python_version="3.13" \
             --data go_version="1.24" \
             --data node_version="22" \
+            --data repository_provider="https://github.com" \
+            --data repository_username="testowner" \
+            --data copyright_date="2026" \
+            --data api_framework="${{ matrix.language == 'python' && 'fastapi' || matrix.language == 'golang' && 'gin' || 'hono' }}" \
             --data add_api=${{ matrix.with-api }} \
             --data add_cli=${{ matrix.with-cli }} \
             --data line_length=88 \
