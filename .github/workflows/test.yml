@@ -7,33 +7,29 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test-template:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
+        language: [python, golang, typescript]
         include:
-          # Python
           - language: python
             with-api: true
             with-cli: false
           - language: python
             with-api: false
             with-cli: true
-          # Go
           - language: golang
             with-api: true
             with-cli: false
-          - language: golang
-            with-api: false
-            with-cli: true
-          # TypeScript
           - language: typescript
             with-api: true
-            with-cli: false
-          - language: typescript
-            with-api: false
             with-cli: false
 
     steps:
@@ -43,14 +39,14 @@ jobs:
       - name: 安装工具
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-          python -m pip install copier
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          pip install copier
 
-      - name: 使用 copier 生成项目（{{ matrix.language }}）
+      - name: 使用 copier 生成项目（${{ matrix.language }}）
         run: |
-          export PATH="$HOME/.cargo/bin:$PATH"
-          copier copy --vcs-ref HEAD . /tmp/test-{{ matrix.language }} \
-            --data language={{ matrix.language }} \
+          export PATH="$HOME/.local/bin:$PATH"
+          copier copy --vcs-ref HEAD . /tmp/test-${{ matrix.language }} \
+            --data language=${{ matrix.language }} \
             --data project_name="Test Project" \
             --data package_name="test_package" \
             --data author_name="Test Author" \
@@ -66,62 +62,93 @@ jobs:
       - name: 验证生成的项目结构
         run: |
           echo "=== 项目结构 ==="
-          find /tmp/test-{{ matrix.language }} -type f | head -30
+          find /tmp/test-${{ matrix.language }} -type f | head -30
+          echo ""
           echo "=== 验证关键文件 ==="
 
-{% if matrix.language == 'python' -%}
-          test -f /tmp/test-{{ matrix.language }}/pyproject.toml && echo "pyproject.toml OK" || echo "pyproject.toml MISSING"
-          test -d /tmp/test-{{ matrix.language }}/src && echo "src/ OK" || echo "src/ MISSING"
-          test -d /tmp/test-{{ matrix.language }}/tests && echo "tests/ OK" || echo "tests/ MISSING"
-
-{%- elif matrix.language == 'golang' -%}
-          test -f /tmp/test-{{ matrix.language }}/go.mod && echo "go.mod OK" || echo "go.mod MISSING"
-          test -d /tmp/test-{{ matrix.language }}/cmd && echo "cmd/ OK" || echo "cmd/ MISSING"
-          test -d /tmp/test-{{ matrix.language }}/internal && echo "internal/ OK" || echo "internal/ MISSING"
-
-{%- elif matrix.language == 'typescript' -%}
-          test -f /tmp/test-{{ matrix.language }}/package.json && "package.json OK" || echo "package.json MISSING"
-          test -f /tmp/test-{{ matrix.language }}/tsconfig.json && "tsconfig.json OK" || echo "tsconfig.json MISSING"
-          test -d /tmp/test-{{ matrix.language }}/src && "src/ OK" || echo "src/ MISSING"
-{%- endif %}
-
-          test -f /tmp/test-{{ matrix.language }}/Makefile && "Makefile OK" || echo "Makefile MISSING"
-          test -f /tmp/test-{{ matrix.language }}/README.md && "README.md OK" || echo "README.md MISSING"
-
-{% if matrix.language == 'python' -%}
-      - name: Python：安装依赖并检查
-        working-directory: /tmp/test-{{ matrix.language }}
+      - name: 验证 Python 关键文件
+        if: matrix.language == 'python'
         run: |
-          export PATH="$HOME/.cargo/bin:$PATH"
+          test -f /tmp/test-python/pyproject.toml && echo "pyproject.toml OK" || (echo "pyproject.toml MISSING" && exit 1)
+          test -d /tmp/test-python/src && echo "src/ OK" || (echo "src/ MISSING" && exit 1)
+          test -d /tmp/test-python/tests && echo "tests/ OK" || (echo "tests/ MISSING" && exit 1)
+
+      - name: 验证 Go 关键文件
+        if: matrix.language == 'golang'
+        run: |
+          test -f /tmp/test-golang/go.mod && echo "go.mod OK" || (echo "go.mod MISSING" && exit 1)
+          test -d /tmp/test-golang/cmd && echo "cmd/ OK" || (echo "cmd/ MISSING" && exit 1)
+          test -d /tmp/test-golang/internal && echo "internal/ OK" || (echo "internal/ MISSING" && exit 1)
+
+      - name: 验证 TypeScript 关键文件
+        if: matrix.language == 'typescript'
+        run: |
+          test -f /tmp/test-typescript/package.json && echo "package.json OK" || (echo "package.json MISSING" && exit 1)
+          test -f /tmp/test-typescript/tsconfig.json && echo "tsconfig.json OK" || (echo "tsconfig.json MISSING" && exit 1)
+          test -d /tmp/test-typescript/src && echo "src/ OK" || (echo "src/ MISSING" && exit 1)
+
+      - name: 验证公共文件
+        run: |
+          test -f /tmp/test-${{ matrix.language }}/Makefile && echo "Makefile OK" || (echo "Makefile MISSING" && exit 1)
+          test -f /tmp/test-${{ matrix.language }}/README.md && echo "README.md OK" || (echo "README.md MISSING" && exit 1)
+
+      # ========== Python: 完整检查 ==========
+      - name: Python — 安装依赖
+        if: matrix.language == 'python'
+        working-directory: /tmp/test-python
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
           uv venv
           uv pip install -e ".[dev]"
+
+      - name: Python — ruff 检查
+        if: matrix.language == 'python'
+        working-directory: /tmp/test-python
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
           uv run ruff check .
           uv run ruff format --check .
 
-      - name: Python：运行测试
-        working-directory: /tmp/test-{{ matrix.language }}
+      - name: Python — mypy 类型检查
+        if: matrix.language == 'python'
+        working-directory: /tmp/test-python
         run: |
-          export PATH="$HOME/.cargo/bin:$PATH"
+          export PATH="$HOME/.local/bin:$PATH"
+          uv run mypy src/test_package
+
+      - name: Python — 运行测试
+        if: matrix.language == 'python'
+        working-directory: /tmp/test-python
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
           uv run pytest --cov=src/test_package --cov-report=term-missing -v
 
-{%- elif matrix.language == 'golang' -%}
-      - name: Go：验证模块
-        working-directory: /tmp/test-{{ matrix.language }}
+      # ========== Go: 完整检查 ==========
+      - name: Go — 安装依赖并验证
+        if: matrix.language == 'golang'
+        working-directory: /tmp/test-golang
         run: |
           go mod download
           go vet ./...
           go build ./...
 
-{%- elif matrix.language == 'typescript' -%}
-      - name: TypeScript：安装依赖并检查
-        working-directory: /tmp/test-{{ matrix.language }}
-        run: |
-          npm install
-          npx biome check .
-          npx tsc --noEmit
+      # ========== TypeScript: 完整检查 ==========
+      - name: TypeScript — 安装依赖
+        if: matrix.language == 'typescript'
+        working-directory: /tmp/test-typescript
+        run: npm install
 
-      - name: TypeScript：运行测试
-        working-directory: /tmp/test-{{ matrix.language }}
-        run: |
-          npx vitest run
-{%- endif %}
+      - name: TypeScript — Biome 检查
+        if: matrix.language == 'typescript'
+        working-directory: /tmp/test-typescript
+        run: npx biome check .
+
+      - name: TypeScript — 类型检查
+        if: matrix.language == 'typescript'
+        working-directory: /tmp/test-typescript
+        run: npx tsc --noEmit
+
+      - name: TypeScript — 运行测试
+        if: matrix.language == 'typescript'
+        working-directory: /tmp/test-typescript
+        run: npx vitest run
