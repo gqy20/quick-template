@@ -54,10 +54,13 @@ jobs:
             --data description="A test project" \
             --data version="0.1.0" \
             --data license="MIT" \
+            --data python_version="3.13" \
+            --data go_version="1.24" \
+            --data node_version="22" \
             --data add_api=${{ matrix.with-api }} \
             --data add_cli=${{ matrix.with-cli }} \
             --data line_length=88 \
-            --defaults
+            --force
 
       - name: 验证生成的项目结构
         run: |
