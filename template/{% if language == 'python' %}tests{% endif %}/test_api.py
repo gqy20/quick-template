@@ -202,8 +202,6 @@ class TestValidation:
         user_data = {"name": "测试", "email": "test@example.com", "age": 200}
         response = client.post("/api/v1/users", json=user_data)
         assert response.status_code == 422
-{% else -%}
-import pytest
-
-# API 模块未启用
-{% endif -%}
+{%- else -%}
+# API 模块未启用，跳过测试
+{%- endif %}

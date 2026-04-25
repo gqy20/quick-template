@@ -111,7 +111,8 @@ jobs:
         working-directory: ${{ steps.generate.outputs.dst_dir }}
         run: |
           export PATH="$HOME/.local/bin:$PATH"
-          uv run mypy src/test_package
+          PKG=$(ls src/ | head -1)
+          uv run mypy "src/$PKG"
 
       - name: Python — 运行测试
         if: matrix.language == 'python'
@@ -126,6 +127,7 @@ jobs:
         working-directory: ${{ steps.generate.outputs.dst_dir }}
         run: |
           go mod download
+          go mod tidy
           go vet ./...
           go build ./...
 

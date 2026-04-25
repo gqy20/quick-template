@@ -1,6 +1,7 @@
-"""{{package_name }}"""
+"""{{package_name}}"""
 
-__version__ = "{{version }}"
+__version__ = "{{version}}"
+
 
 from .core import add, greet
 from .logger import (
@@ -15,15 +16,13 @@ from .logger import (
     print_warning,
     setup_logger,
 )
-
-{% if add_api -%}
+{% if add_api %}
 # API 模块作为可选导入（需要安装 fastapi）
 try:
     from .api import app as api_app
 except ImportError:
-    api_app = None
-{% endif %}
-
+    api_app = None  # type: ignore[assignment]
+{%- endif %}
 __all__ = [
     "greet",
     "add",
@@ -38,5 +37,5 @@ __all__ = [
     "print_info",
     "print_header",
     "print_section",
-    {% if add_api -%}"api_app"{% endif %},
-]
+{% if add_api %}    "api_app",
+{% endif %}]

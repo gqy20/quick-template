@@ -1,9 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"log/slog"
 	"os"
+
+	_ "fmt"
 
 	"{% if repository_provider == 'https://github.com' %}github.com/{{ repository_username }}/{{ project_slug }}{% else %}{{ repository_provider }}/{{ repository_username }}/{{ project_slug }}{% endif %}/internal/handler"
 	"{% if repository_provider == 'https://github.com' %}github.com/{{ repository_username }}/{{ project_slug }}{% else %}{{ repository_provider }}/{{ repository_username }}/{{ project_slug }}{% endif %}/pkg/logger"

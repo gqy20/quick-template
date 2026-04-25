@@ -7,7 +7,6 @@ import (
 
 	{% if add_api -%}
 	"github.com/gin-gonic/gin"
-	"{% if repository_provider == 'https://github.com' %}github.com/{{ repository_username }}/{{ project_slug }}{% else %}{{ repository_provider }}/{{ repository_username }}/{{ project_slug }}{% endif %}/internal/handler"
 	{%- endif %}
 )
 
