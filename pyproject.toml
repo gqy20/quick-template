@@ -1,9 +1,19 @@
 [project]
-name = "quick-template-dev"
-version = "0.1.0"
-description = "Dev environment for quick-template (Copier multi-language project template)"
+name = "quick-template"
+version = "0.2.0"
+description = "Multi-language project scaffolding tool (Python / Go / TypeScript)"
 requires-python = ">=3.11"
 dependencies = []
 
+[project.scripts]
+quick-template = "scaffold:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/scaffold"]
+
 [dependency-groups]
-dev = ["copier>=9.0"]
+dev = []
