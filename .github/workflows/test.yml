@@ -43,9 +43,7 @@ jobs:
 
       - name: 准备答案文件（${{ matrix.language }}）
         run: |
-          cat > /tmp/answers-${{ matrix.language }}.yml << ANSWERS
-          _copier_conf:
-            exists_in: false
+          cat > /tmp/answers-${{ matrix.language }}.yml << 'EOF'
           language: "${{ matrix.language }}"
           project_name: Test Project
           project_slug: test-project
@@ -59,14 +57,12 @@ jobs:
           repository_username: testowner
           copyright_date: "2026"
           line_length: 88
-          add_api: ${{ matrix.with-api }}
-          add_cli: ${{ matrix.with-cli }}
-          api_framework: >-
-            ${{ matrix.language == 'python' && 'fastapi' || matrix.language == 'golang' && 'gin' || 'hono' }}
+          add_api: ${{ matrix.with-api == 'true' && 'true' || 'false' }}
+          add_cli: ${{ matrix.with_cli == 'true' && 'true' || 'false' }}
           python_version: "3.13"
           go_version: "1.24"
           node_version: "22"
-          ANSWERS
+          EOF
 
       - name: 使用 copier 生成项目
         run: |
@@ -94,7 +90,7 @@ jobs:
         run: |
           test -f /tmp/test-golang/go.mod && echo "go.mod OK" || (echo "go.mod MISSING" && exit 1)
           test -d /tmp/test-golang/cmd && echo "cmd/ OK" || (echo "cmd/ MISSING" && exit 1)
-          test -d /tmp/test-golang/internal && echo "internal/ OK" || (echo "internal/ MISSING" && exit 1)
+          test -d /tmp/test-golang/internal && echo "internal/ OK" || (echo "internal/MISSING" && exit 1)
 
       - name: 验证 TypeScript 关键文件
         if: matrix.language == 'typescript'
