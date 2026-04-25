@@ -41,70 +41,58 @@ jobs:
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-          pip install copier
 
-      - name: 准备数据文件（${{ matrix.language }}）
-        run: |
-          cat > data-${{ matrix.language }}.yml << 'EOF'
-          language: "${{ matrix.language }}"
-          project_name: Test Project
-          author_name: Test Author
-          author_email: test@example.com
-          description: A test project
-          version: "0.1.0"
-          license: MIT
-          line_length: 88
-          add_api: ${{ matrix.with-api == 'true' && 'true' || 'false' }}
-          add_cli: ${{ matrix.with_cli == 'true' && 'true' || 'false' }}
-          python_version: "3.13"
-          go_version: "1.24"
-          node_version: "22"
-          EOF
-
-      - name: 使用 copier 生成项目
+      - name: 使用 copier 生成项目（Python API）
+        id: generate
         run: |
           export PATH="$HOME/.local/bin:$PATH"
-          copier copy --vcs-ref HEAD . /tmp/test-${{ matrix.language }} \
-            --data-file data-${{ matrix.language }}.yml \
-            --trust --force
+          OUTPUT=$(uv run --with copier test_template.py \
+            "${{ matrix.language }}" "${{ matrix.with-api }}" "${{ matrix.with_cli }}")
+          echo "$OUTPUT"
+          DST_DIR=$(echo "$OUTPUT" | grep "^OK:" | cut -d: -f2-)
+          echo "dst_dir=$DST_DIR" >> $GITHUB_OUTPUT
 
       - name: 验证生成的项目结构
         run: |
           echo "=== 项目结构 ==="
-          find /tmp/test-${{ matrix.language }} -type f | head -30
+          find ${{ steps.generate.outputs.dst_dir }} -type f | head -30
           echo ""
           echo "=== 验证关键文件 ==="
 
       - name: 验证 Python 关键文件
         if: matrix.language == 'python'
         run: |
-          test -f /tmp/test-python/pyproject.toml && echo "pyproject.toml OK" || (echo "pyproject.toml MISSING" && exit 1)
-          test -d /tmp/test-python/src && echo "src/ OK" || (echo "src/ MISSING" && exit 1)
-          test -d /tmp/test-python/tests && echo "tests/ OK" || (echo "tests/ MISSING" && exit 1)
+          D=${{ steps.generate.outputs.dst_dir }}
+          test -f $D/pyproject.toml && echo "pyproject.toml OK" || (echo "pyproject.toml MISSING" && exit 1)
+          test -d $D/src && echo "src/ OK" || (echo "src/ MISSING" && exit 1)
+          test -d $D/tests && echo "tests/ OK" || (echo "tests/ MISSING" && exit 1)
 
       - name: 验证 Go 关键文件
         if: matrix.language == 'golang'
         run: |
-          test -f /tmp/test-golang/go.mod && echo "go.mod OK" || (echo "go.mod MISSING" && exit 1)
-          test -d /tmp/test-golang/cmd && echo "cmd/ OK" || (echo "cmd/ MISSING" && exit 1)
-          test -d /tmp/test-golang/internal && echo "internal/ OK" || (echo "internal/MISSING" && exit 1)
+          D=${{ steps.generate.outputs.dst_dir }}
+          test -f $D/go.mod && echo "go.mod OK" || (echo "go.mod MISSING" && exit 1)
+          test -d $D/cmd && echo "cmd/ OK" || (echo "cmd/ MISSING" && exit 1)
+          test -d $D/internal && echo "internal/ OK" || (echo "internal/MISSING" && exit 1)
 
       - name: 验证 TypeScript 关键文件
         if: matrix.language == 'typescript'
         run: |
-          test -f /tmp/test-typescript/package.json && echo "package.json OK" || (echo "package.json MISSING" && exit 1)
-          test -f /tmp/test-typescript/tsconfig.json && echo "tsconfig.json OK" || (echo "tsconfig.json MISSING" && exit 1)
-          test -d /tmp/test-typescript/src && echo "src/ OK" || (echo "src/ MISSING" && exit 1)
+          D=${{ steps.generate.outputs.dst_dir }}
+          test -f $D/package.json && echo "package.json OK" || (echo "package.json MISSING" && exit 1)
+          test -f $D/tsconfig.json && echo "tsconfig.json OK" || (echo "tsconfig.json MISSING" && exit 1)
+          test -d $D/src && echo "src/ OK" || (echo "src/ MISSING" && exit 1)
 
       - name: 验证公共文件
         run: |
-          test -f /tmp/test-${{ matrix.language }}/Makefile && echo "Makefile OK" || (echo "Makefile MISSING" && exit 1)
-          test -f /tmp/test-${{ matrix.language }}/README.md && echo "README.md OK" || (echo "README.md MISSING" && exit 1)
+          D=${{ steps.generate.outputs.dst_dir }}
+          test -f $D/Makefile && echo "Makefile OK" || (echo "Makefile MISSING" && exit 1)
+          test -f $D/README.md && echo "README.md OK" || (echo "README.md MISSING" && exit 1)
 
       # ========== Python 完整检查 ==========
       - name: Python — 安装依赖
         if: matrix.language == 'python'
-        working-directory: /tmp/test-python
+        working-directory: ${{ steps.generate.outputs.dst_dir }}
         run: |
           export PATH="$HOME/.local/bin:$PATH"
           uv venv
@@ -112,7 +100,7 @@ jobs:
 
       - name: Python — ruff 检查
         if: matrix.language == 'python'
-        working-directory: /tmp/test-python
+        working-directory: ${{ steps.generate.outputs.dst_dir }}
         run: |
           export PATH="$HOME/.local/bin:$PATH"
           uv run ruff check .
@@ -120,14 +108,14 @@ jobs:
 
       - name: Python — mypy 类型检查
         if: matrix.language == 'python'
-        working-directory: /tmp/test-python
+        working-directory: ${{ steps.generate.outputs.dst_dir }}
         run: |
           export PATH="$HOME/.local/bin:$PATH"
           uv run mypy src/test_package
 
       - name: Python — 运行测试
         if: matrix.language == 'python'
-        working-directory: /tmp/test-python
+        working-directory: ${{ steps.generate.outputs.dst_dir }}
         run: |
           export PATH="$HOME/.local/bin:$PATH"
           uv run pytest --cov=src/test_package --cov-report=term-missing -v
@@ -135,7 +123,7 @@ jobs:
       # ========== Go 完整检查 ==========
       - name: Go — 验证模块
         if: matrix.language == 'golang'
-        working-directory: /tmp/test-golang
+        working-directory: ${{ steps.generate.outputs.dst_dir }}
         run: |
           go mod download
           go vet ./...
@@ -144,20 +132,20 @@ jobs:
       # ========== TypeScript 完整检查 ==========
       - name: TypeScript — 安装依赖
         if: matrix.language == 'typescript'
-        working-directory: /tmp/test-typescript
+        working-directory: ${{ steps.generate.outputs.dst_dir }}
         run: npm install
 
       - name: TypeScript — Biome 检查
         if: matrix.language == 'typescript'
-        working-directory: /tmp/test-typescript
+        working-directory: ${{ steps.generate.outputs.dst_dir }}
         run: npx biome check .
 
       - name: TypeScript — 类型检查
         if: matrix.language == 'typescript'
-        working-directory: /tmp/test-typescript
+        working-directory: ${{ steps.generate.outputs.dst_dir }}
         run: npx tsc --noEmit
 
       - name: TypeScript — 运行测试
         if: matrix.language == 'typescript'
-        working-directory: /tmp/test-typescript
+        working-directory: ${{ steps.generate.outputs.dst_dir }}
         run: npx vitest run
