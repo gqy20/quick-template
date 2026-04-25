@@ -17,7 +17,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [python, golang, typescript]
         include:
           - language: python
             with-api: true
@@ -42,29 +41,38 @@ jobs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
           pip install copier
 
-      - name: 使用 copier 生成项目（${{ matrix.language }}）
+      - name: 准备答案文件（${{ matrix.language }}）
+        run: |
+          cat > /tmp/answers-${{ matrix.language }}.yml << ANSWERS
+          _copier_conf:
+            exists_in: false
+          language: "${{ matrix.language }}"
+          project_name: Test Project
+          project_slug: test-project
+          package_name: test_package
+          author_name: Test Author
+          author_email: test@example.com
+          description: A test project
+          version: "0.1.0"
+          license: MIT
+          repository_provider: https://github.com
+          repository_username: testowner
+          copyright_date: "2026"
+          line_length: 88
+          add_api: ${{ matrix.with-api }}
+          add_cli: ${{ matrix.with-cli }}
+          api_framework: >-
+            ${{ matrix.language == 'python' && 'fastapi' || matrix.language == 'golang' && 'gin' || 'hono' }}
+          python_version: "3.13"
+          go_version: "1.24"
+          node_version: "22"
+          ANSWERS
+
+      - name: 使用 copier 生成项目
         run: |
           export PATH="$HOME/.local/bin:$PATH"
           copier copy --vcs-ref HEAD . /tmp/test-${{ matrix.language }} \
-            --data language=${{ matrix.language }} \
-            --data project_name="Test Project" \
-            --data project_slug="test-project" \
-            --data package_name="test_package" \
-            --data author_name="Test Author" \
-            --data author_email="test@example.com" \
-            --data description="A test project" \
-            --data version="0.1.0" \
-            --data license="MIT" \
-            --data python_version="3.13" \
-            --data go_version="1.24" \
-            --data node_version="22" \
-            --data repository_provider="https://github.com" \
-            --data repository_username="testowner" \
-            --data copyright_date="2026" \
-            --data api_framework="${{ matrix.language == 'python' && 'fastapi' || matrix.language == 'golang' && 'gin' || 'hono' }}" \
-            --data add_api=${{ matrix.with-api }} \
-            --data add_cli=${{ matrix.with-cli }} \
-            --data line_length=88 \
+            --answers-file /tmp/answers-${{ matrix.language }}.yml \
             --force
 
       - name: 验证生成的项目结构
@@ -100,7 +108,7 @@ jobs:
           test -f /tmp/test-${{ matrix.language }}/Makefile && echo "Makefile OK" || (echo "Makefile MISSING" && exit 1)
           test -f /tmp/test-${{ matrix.language }}/README.md && echo "README.md OK" || (echo "README.md MISSING" && exit 1)
 
-      # ========== Python: 完整检查 ==========
+      # ========== Python 完整检查 ==========
       - name: Python — 安装依赖
         if: matrix.language == 'python'
         working-directory: /tmp/test-python
@@ -131,8 +139,8 @@ jobs:
           export PATH="$HOME/.local/bin:$PATH"
           uv run pytest --cov=src/test_package --cov-report=term-missing -v
 
-      # ========== Go: 完整检查 ==========
-      - name: Go — 安装依赖并验证
+      # ========== Go 完整检查 ==========
+      - name: Go — 验证模块
         if: matrix.language == 'golang'
         working-directory: /tmp/test-golang
         run: |
@@ -140,7 +148,7 @@ jobs:
           go vet ./...
           go build ./...
 
-      # ========== TypeScript: 完整检查 ==========
+      # ========== TypeScript 完整检查 ==========
       - name: TypeScript — 安装依赖
         if: matrix.language == 'typescript'
         working-directory: /tmp/test-typescript
