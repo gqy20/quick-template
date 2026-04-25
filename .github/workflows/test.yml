@@ -34,6 +34,8 @@ jobs:
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: 安装工具
         run: |
@@ -41,21 +43,16 @@ jobs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
           pip install copier
 
-      - name: 准备答案文件（${{ matrix.language }}）
+      - name: 准备数据文件（${{ matrix.language }}）
         run: |
-          cat > answers-${{ matrix.language }}.yml << 'EOF'
+          cat > data-${{ matrix.language }}.yml << 'EOF'
           language: "${{ matrix.language }}"
           project_name: Test Project
-          project_slug: test-project
-          package_name: test_package
           author_name: Test Author
           author_email: test@example.com
           description: A test project
           version: "0.1.0"
           license: MIT
-          repository_provider: https://github.com
-          repository_username: testowner
-          copyright_date: "2026"
           line_length: 88
           add_api: ${{ matrix.with-api == 'true' && 'true' || 'false' }}
           add_cli: ${{ matrix.with_cli == 'true' && 'true' || 'false' }}
@@ -68,8 +65,8 @@ jobs:
         run: |
           export PATH="$HOME/.local/bin:$PATH"
           copier copy --vcs-ref HEAD . /tmp/test-${{ matrix.language }} \
-            --answers-file answers-${{ matrix.language }}.yml \
-            --force
+            --data-file data-${{ matrix.language }}.yml \
+            --trust --force
 
       - name: 验证生成的项目结构
         run: |

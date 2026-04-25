@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <defs>
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#161b22"/>
+      <stop offset="100%" style="stop-color:#0f1117"/>
+    </linearGradient>
+    <linearGradient id="accent-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#58a6ff"/>
+      <stop offset="50%" style="stop-color:#bc8cff"/>
+      <stop offset="100%" style="stop-color:#39c5cf"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background rounded rect -->
+  <rect x="8" y="8" width="224" height="224" rx="48" ry="48" fill="url(#bg-grad)" stroke="#30363d" stroke-width="2"/>
+
+  <!-- Lightning bolt (speed) -->
+  <path d="M128 36 L84 116 L114 116 L104 188 L156 104 L124 104 Z" fill="url(#accent-grad)" filter="url(#glow)" opacity="0.95"/>
+
+  <!-- Three dots representing multi-language -->
+  <circle cx="72" cy="186" r="10" fill="#3776AB" opacity="0.9"/>
+  <circle cx="120" cy="198" r="10" fill="#00ADD8" opacity="0.9"/>
+  <circle cx="168" cy="186" r="10" fill="#3178C6" opacity="0.9"/>
+
+  <!-- Subtle ring -->
+  <circle cx="120" cy="112" r="78" fill="none" stroke="url(#accent-grad)" stroke-width="1.5" opacity="0.25"/>
+</svg>
