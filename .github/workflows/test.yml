@@ -43,7 +43,7 @@ jobs:
 
       - name: 准备答案文件（${{ matrix.language }}）
         run: |
-          cat > /tmp/answers-${{ matrix.language }}.yml << 'EOF'
+          cat > answers-${{ matrix.language }}.yml << 'EOF'
           language: "${{ matrix.language }}"
           project_name: Test Project
           project_slug: test-project
@@ -68,7 +68,7 @@ jobs:
         run: |
           export PATH="$HOME/.local/bin:$PATH"
           copier copy --vcs-ref HEAD . /tmp/test-${{ matrix.language }} \
-            --answers-file /tmp/answers-${{ matrix.language }}.yml \
+            --answers-file answers-${{ matrix.language }}.yml \
             --force
 
       - name: 验证生成的项目结构
