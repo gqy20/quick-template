@@ -3,7 +3,9 @@ name = "quick-template"
 version = "0.2.0"
 description = "Multi-language project scaffolding tool (Python / Go / TypeScript)"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "pydantic>=2.0",
+]
 
 [project.scripts]
 quick-template = "scaffold.cli:main"

@@ -3,8 +3,8 @@
 import argparse
 from pathlib import Path
 
-from .files import copy_template_dir, load_data_file
-from .variables import DEFAULTS, compute_derived
+from .files import copy_template_dir
+from .variables import ProjectVars
 
 TEMPLATE_ROOT = Path(__file__).resolve().parent.parent.parent
 
@@ -26,16 +26,7 @@ def build_vars(
     output_dir: Path | None,
 ) -> dict:
     """构建完整变量字典：默认值 → 数据文件 → CLI 覆盖 → 派生变量。"""
-    vars_dict = dict(DEFAULTS)
-
-    if data_file:
-        vars_dict.update(load_data_file(data_file))
-
-    vars_dict["language"] = language
-    vars_dict["add_api"] = add_api
-
-    compute_derived(vars_dict)
-    return vars_dict
+    return ProjectVars.build(data_file, language, add_api).to_dict()
 
 
 def main(argv: list[str] | None = None) -> None:

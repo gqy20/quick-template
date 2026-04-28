@@ -80,7 +80,7 @@ def _process_branches(text: str, vars_dict: dict) -> str:
         branches.append((cond, buf))
 
     for c, b in branches:
-        if c == "__else__":
+        if c is None or c == "__else__":
             return "".join(b)
         if _eval_condition(c, vars_dict):
             return "".join(b)

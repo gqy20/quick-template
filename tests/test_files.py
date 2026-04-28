@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from scaffold.engine import render
-from scaffold.variables import DEFAULTS, compute_derived
+from scaffold.variables import ProjectVars
 
 
 class TestProcessFile:
@@ -17,14 +17,14 @@ class TestProcessFile:
     def test_simple_template(self, tmp_path):
         tmpl = tmp_path / "hello.txt"
         tmpl.write_text("Hello, {{project_name}}!")
-        result = render(tmpl.read_text(), {**DEFAULTS, "project_name": "World"})
+        result = render(tmpl.read_text(), {"project_name": "World"})
         assert result == "Hello, World!"
 
     def test_conditional_in_file(self, tmp_path):
         tmpl = tmp_path / "cond.txt"
         tmpl.write_text("{{#if add_api}}API ON{{#else}}API OFF{{#endif}}")
-        assert render(tmpl.read_text(), {**DEFAULTS, "add_api": True}) == "API ON"
-        assert render(tmpl.read_text(), {**DEFAULTS, "add_api": False}) == "API OFF"
+        assert render(tmpl.read_text(), {"add_api": True}) == "API ON"
+        assert render(tmpl.read_text(), {"add_api": False}) == "API OFF"
 
     def test_nested_conditionals_in_file(self, tmp_path):
         tmpl = tmp_path / "nested.txt"
@@ -117,21 +117,20 @@ class TestLoadDataFile:
 
 
 class TestComputeDerived:
-    """compute_derived: 计算派生变量。"""
+    """ProjectVars._compute_derived: 计算派生变量。"""
 
     def test_slug_from_name(self):
-        vars_dict = {**DEFAULTS, "project_name": "My Awesome Project"}
-        compute_derived(vars_dict)
-        assert vars_dict["project_slug"] == "my-awesome-project"
-        assert vars_dict["package_name"] == "my_awesome_project"
+        values = {"project_name": "My Awesome Project"}
+        derived = ProjectVars._compute_derived(values)
+        assert derived["project_slug"] == "my-awesome-project"
+        assert derived["package_name"] == "my_awesome_project"
 
     def test_repository_username(self):
-        vars_dict = {**DEFAULTS, "author_name": "John Doe"}
-        compute_derived(vars_dict)
-        assert vars_dict["repository_username"] == "john-doe"
+        values = {"author_name": "John Doe"}
+        derived = ProjectVars._compute_derived(values)
+        assert derived["repository_username"] == "john-doe"
 
     def test_copyright_date(self):
-        vars_dict = dict(DEFAULTS)
-        compute_derived(vars_dict)
-        assert vars_dict["copyright_date"].isdigit()
-        assert len(vars_dict["copyright_date"]) == 4
+        derived = ProjectVars._compute_derived({})
+        assert derived["copyright_date"].isdigit()
+        assert len(derived["copyright_date"]) == 4

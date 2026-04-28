@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 
 from .engine import render
-from .variables import DEFAULTS
 
 _SKIP_DIRS = {"__pycache__", ".git", ".svn", "node_modules", ".venv"}
 

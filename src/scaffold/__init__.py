@@ -3,12 +3,11 @@
 from .cli import build_vars, parse_args
 from .engine import render
 from .files import copy_template_dir, load_data_file, process_file
-from .variables import DEFAULTS, compute_derived
+from .variables import ProjectVars
 
 __all__ = [
-    "DEFAULTS",
+    "ProjectVars",
     "build_vars",
-    "compute_derived",
     "copy_template_dir",
     "load_data_file",
     "parse_args",

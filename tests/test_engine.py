@@ -3,7 +3,7 @@
 import pytest
 
 from scaffold.engine import render, substitute_vars, process_conditionals
-from scaffold.variables import DEFAULTS, compute_derived
+from scaffold.variables import ProjectVars
 
 
 class TestSubstituteVars:
@@ -104,8 +104,7 @@ class TestRender:
     """完整渲染流程：先条件后变量。"""
 
     def setup_method(self):
-        self.vars = dict(DEFAULTS)
-        compute_derived(self.vars)
+        self.vars = ProjectVars.build(None, "python", True).to_dict()
 
     def test_var_substitution(self):
         assert render("Hi {{project_name}}", self.vars) == "Hi My Project"
@@ -116,7 +115,8 @@ class TestRender:
 
     def test_conditional_false_removes_block(self):
         tmpl = "{{#if add_api}}HIDDEN{{#endif}}VISIBLE"
-        assert render(tmpl, {**self.vars, "add_api": False}) == "VISIBLE"
+        vars_no_api = ProjectVars.build(None, "python", False).to_dict()
+        assert render(tmpl, vars_no_api) == "VISIBLE"
 
     def test_derived_vars_available(self):
         assert render("slug: {{project_slug}}", self.vars) == "slug: my-project"

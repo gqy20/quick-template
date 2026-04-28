@@ -5,15 +5,15 @@ import sys
 import tempfile
 from pathlib import Path
 
-from scaffold.cli import build_vars
 from scaffold.files import copy_template_dir
+from scaffold.variables import ProjectVars
 
 TEMPLATE_ROOT = Path(__file__).resolve().parent
 
 
 def test_generate(language: str, add_api: bool = True, add_cli: bool = False) -> Path:
     """使用 scaffold 引擎生成项目。"""
-    data = {
+    extra = {
         "project_name": "Test Project",
         "author_name": "Test Author",
         "author_email": "test@example.com",
@@ -23,17 +23,13 @@ def test_generate(language: str, add_api: bool = True, add_cli: bool = False) ->
         "line_length": 88,
     }
     if language == "python":
-        data["python_version"] = "3.13"
+        extra["python_version"] = "3.13"
     elif language == "golang":
-        data["go_version"] = "1.24"
+        extra["go_version"] = "1.24"
     elif language == "typescript":
-        data["node_version"] = "22"
+        extra["node_version"] = "22"
 
-    vars_dict = build_vars(None, language, add_api, None)
-    vars_dict.update(data)
-    # Re-derive after updating base vars
-    from scaffold.variables import compute_derived
-    compute_derived(vars_dict)
+    vars_dict = ProjectVars.build(None, language, add_api, extra).to_dict()
 
     dst = Path(tempfile.mkdtemp(prefix=f"quick-test-{language}-"))
     print(f"  生成 {language} 项目 → {dst}")
