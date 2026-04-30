@@ -5,7 +5,7 @@ description = "Multi-language project scaffolding tool (Python / Go / TypeScript
 requires-python = ">=3.11"
 dependencies = [
     "pydantic>=2.0",
-    "claude-agent-sdk>=0.1.69",
+    "claude-agent-sdk>=0.1.71",
 ]
 
 [project.scripts]

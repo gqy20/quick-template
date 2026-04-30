@@ -26,12 +26,13 @@ except ImportError:
 # Agent SDK 模块作为可选导入（需要安装 claude-agent-sdk）
 try:
     from . import agent
-    from .agent import AgentRunner, output_format_schema, parse_with_model
+    from .agent import AgentRunner, output_format_schema, parse_with_model, structured_query
 except ImportError:
     agent = None  # type: ignore[assignment]
     AgentRunner = None  # type: ignore[assignment]
     output_format_schema = None  # type: ignore[assignment]
     parse_with_model = None  # type: ignore[assignment]
+    structured_query = None  # type: ignore[assignment]
 
 __all__ = [
     "greet",
@@ -51,5 +52,6 @@ __all__ = [
     "AgentRunner",
     "output_format_schema",
     "parse_with_model",
+    "structured_query",
 {% if add_api %}    "api_app",
 {% endif %}]
