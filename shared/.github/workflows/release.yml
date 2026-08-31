@@ -16,32 +16,32 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v2
+        uses: astral-sh/setup-uv@v10
         with:
           version: "latest"
           python-version: "{{ python_version }}"
 
       - name: Install dependencies
-        run: uv pip install -e ".[dev]"
+        run: uv sync --all-groups
 
       - name: Run tests
         run: uv run pytest --cov=src/{{package_name}} --cov-report=xml --cov-report=term-missing
 
       - name: Extract tag name
         id: tag
-        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
 
       - name: Extract version from tag
         id: version
         run: |
           TAG_NAME="${GITHUB_REF#refs/tags/}"
           VERSION="${TAG_NAME#v}"
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Generate changelog
         id: changelog
@@ -50,7 +50,7 @@ jobs:
           if [ -z "$PREV_TAG" ]; then
             CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
           else
-            CHANGELOG=$(git log ${PREV_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
+            CHANGELOG=$(git log "${PREV_TAG}..HEAD" --pretty=format:"- %s (%h)" --no-merges)
           fi
           echo "$CHANGELOG" > changelog.txt
 
@@ -60,21 +60,15 @@ jobs:
       - name: Create Release Notes
         id: release_notes
         run: |
-          cat > release_notes.md << 'EOF'
-          ## What's Changed
-          $(cat changelog.txt)
-          ## Installation
-          ### Using pip
-          ```bash
-          pip install {{project_slug}}==${{ steps.version.outputs.VERSION }}
-          ```
-          ### Using uv
-          ```bash
-          uv pip install {{project_slug}}==${{ steps.version.outputs.VERSION }}
-          ```
-          ## Full Changelog
-          See all commits: https://github.com/${{ github.repository }}/compare/${{ steps.tag.outputs.TAG_NAME }}
-          EOF
+          {
+            echo "## What's Changed"
+            cat changelog.txt
+            echo
+            echo "## Installation"
+            echo '```bash'
+            echo "pip install {{project_slug}}==${{ steps.version.outputs.VERSION }}"
+            echo '```'
+          } > release_notes.md
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -109,13 +103,13 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Extract tag name
         id: tag
-        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
 
       - name: Generate changelog
         run: |
@@ -123,7 +117,7 @@ jobs:
           if [ -z "$PREV_TAG" ]; then
             CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
           else
-            CHANGELOG=$(git log ${PREV_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
+            CHANGELOG=$(git log "${PREV_TAG}..HEAD" --pretty=format:"- %s (%h)" --no-merges)
           fi
           echo "$CHANGELOG" > changelog.txt
 

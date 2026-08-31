@@ -19,7 +19,7 @@
 {{#if language == 'python'}}
 现代 Python 项目脚手架，使用 `uv` + `ruff` + `rich` 构建。
 {{#elif language == 'golang'}}
-现代 Go 项目脚手架，使用 `Gin` + `Cobra` + `golangci-lint` 构建。
+现代 Go 项目脚手架，使用 `Gin` + `go mod` + `golangci-lint` 构建。
 {{#elif language == 'typescript'}}
 现代 TypeScript 项目脚手架，使用 `npm` + `Biome` + `vitest` 构建。
 {{#endif}}
@@ -35,7 +35,7 @@
 {{#elif language == 'golang'}}
 - ⚡ **Go** - 高性能编译型语言
 - 🌐 **Gin** - 高性能 Web 框架
-- 🐍 **Cobra** - 强大的 CLI 框架
+- 🧰 **标准库 CLI** - 简洁、零额外依赖
 - 🔍 **golangci-lint** - 一站式代码检查
 - 📊 **slog** - 结构化日志
 {{#elif language == 'typescript'}}

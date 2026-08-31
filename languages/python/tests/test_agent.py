@@ -1,6 +1,5 @@
 """Agent SDK 模块测试。"""
 
-import pytest
 from pydantic import BaseModel, Field
 
 

@@ -11,7 +11,7 @@ from scaffold.variables import ProjectVars
 TEMPLATE_ROOT = Path(__file__).resolve().parent
 
 
-def test_generate(language: str, add_api: bool = True, add_cli: bool = False) -> Path:
+def test_generate(language: str, add_api: bool = True) -> Path:
     """使用 scaffold 引擎生成项目。"""
     extra = {
         "project_name": "Test Project",
@@ -48,9 +48,7 @@ def test_generate(language: str, add_api: bool = True, add_cli: bool = False) ->
 def main():
     language = sys.argv[1] if len(sys.argv) > 1 else "python"
     add_api = sys.argv[2].lower() == "true" if len(sys.argv) > 2 else True
-    add_cli = sys.argv[3].lower() == "true" if len(sys.argv) > 3 else False
-
-    dst = test_generate(language, add_api, add_cli)
+    dst = test_generate(language, add_api)
     print(f"OK:{dst}")
 
 

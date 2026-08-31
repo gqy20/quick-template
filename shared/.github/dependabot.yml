@@ -1,6 +1,6 @@
 version: 2
 updates:
-  # Python 依赖
+{{#if language == 'python'}}  # Python 依赖
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
@@ -9,6 +9,17 @@ updates:
     open-pull-requests-limit: 3
     labels:
       - "dependencies"
+{{#elif language == 'golang'}}  # Go 依赖
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+{{#elif language == 'typescript'}}  # npm 依赖
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+{{#endif}}
 
   # GitHub Actions
   - package-ecosystem: "github-actions"

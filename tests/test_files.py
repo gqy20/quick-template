@@ -1,9 +1,6 @@
 """文件处理和 CLI 的测试。"""
 
 import json
-import os
-import textwrap
-from pathlib import Path
 
 import pytest
 
@@ -30,9 +27,9 @@ class TestProcessFile:
         tmpl = tmp_path / "nested.txt"
         tmpl.write_text(
             '{{#if language=="python"}}PY'
-            '{{#if add_api}}+API{{#endif}}'
+            "{{#if add_api}}+API{{#endif}}"
             '{{#elif language=="golang"}}GO'
-            '{{#else}}TS{{#endif}}'
+            "{{#else}}TS{{#endif}}"
         )
         assert render(tmpl.read_text(), {"language": "python", "add_api": True}) == "PY+API"
         assert render(tmpl.read_text(), {"language": "python", "add_api": False}) == "PY"
@@ -44,7 +41,8 @@ class TestCopyTemplateDir:
     """copy_template_dir: 递归复制目录并处理每个文件。"""
 
     def setup_method(self):
-        from scaffold.files import process_file, copy_template_dir
+        from scaffold.files import copy_template_dir, process_file
+
         self.process_file = process_file
         self.copy_template_dir = copy_template_dir
 
@@ -96,12 +94,34 @@ class TestCopyTemplateDir:
         self.copy_template_dir(src, dst, {"package_name": "mypkg"})
         assert (dst / "mypkg.py").exists()
 
+    def test_skips_file_when_rendered_content_is_empty(self, tmp_path):
+        src = tmp_path / "src"
+        dst = tmp_path / "dst"
+        src.mkdir()
+        (src / "optional.txt").write_text("{{#if enabled}}yes{{#endif}}")
+
+        self.copy_template_dir(src, dst, {"enabled": False})
+
+        assert not (dst / "optional.txt").exists()
+
+    def test_copies_binary_file_without_rendering(self, tmp_path):
+        src = tmp_path / "src"
+        dst = tmp_path / "dst"
+        src.mkdir()
+        payload = b"\x89PNG\r\n\x1a\n\x00\xff"
+        (src / "logo.png").write_bytes(payload)
+
+        self.copy_template_dir(src, dst, {})
+
+        assert (dst / "logo.png").read_bytes() == payload
+
 
 class TestLoadDataFile:
     """load_data_file: 加载 JSON/YAML 数据文件。"""
 
     def setup_method(self):
         from scaffold.files import load_data_file
+
         self.load_data_file = load_data_file
 
     def test_json_file(self, tmp_path):

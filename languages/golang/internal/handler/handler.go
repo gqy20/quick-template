@@ -1,4 +1,4 @@
-// Package handler 提供 HTTP 处理器
+{{#if add_api}}// Package handler 提供 HTTP 处理器
 package handler
 
 import (
@@ -29,4 +29,4 @@ func Run() error {
 
 	slog.Info("HTTP 服务器启动", "addr", ":8080")
 	return r.Run(":8080")
-}
+}{{#endif}}

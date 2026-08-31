@@ -33,19 +33,30 @@ jobs:
 
     steps:
       - name: 检出代码
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
-      - name: 安装工具
-        run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - name: 安装 uv
+        uses: astral-sh/setup-uv@v10
+        with:
+          python-version: "3.13"
+
+      - name: 设置 Go
+        if: matrix.language == 'golang'
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.27"
+
+      - name: 设置 Node.js
+        if: matrix.language == 'typescript'
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
 
       - name: 使用 scaffold 引擎生成项目
         id: generate
         run: |
-          export PATH="$HOME/.local/bin:$PATH"
           OUTPUT=$(uv run test_template.py "${{ matrix.language }}" "${{ matrix.with-api }}")
           echo "$OUTPUT"
           DST_DIR=$(echo "$OUTPUT" | grep "^OK:" | cut -d: -f2-)
@@ -54,7 +65,7 @@ jobs:
       - name: 验证生成的项目结构
         run: |
           echo "=== 项目结构 ==="
-          find ${{ steps.generate.outputs.dst_dir }} -type f | head -30
+          find "${{ steps.generate.outputs.dst_dir }}" -type f | head -30
           echo ""
           echo "=== 验证关键文件 ==="
 
@@ -93,23 +104,19 @@ jobs:
         if: matrix.language == 'python'
         working-directory: ${{ steps.generate.outputs.dst_dir }}
         run: |
-          export PATH="$HOME/.local/bin:$PATH"
-          uv venv
-          uv pip install -e ".[dev]"
+          uv sync --all-groups
 
       - name: Python — ruff 检查
         if: matrix.language == 'python'
         working-directory: ${{ steps.generate.outputs.dst_dir }}
         run: |
-          export PATH="$HOME/.local/bin:$PATH"
-          uv run ruff check .
-          uv run ruff format --check .
+          uv run ruff check src tests scripts
+          uv run ruff format --check src tests scripts
 
       - name: Python — mypy 类型检查
         if: matrix.language == 'python'
         working-directory: ${{ steps.generate.outputs.dst_dir }}
         run: |
-          export PATH="$HOME/.local/bin:$PATH"
           PKG=$(ls src/ | head -1)
           uv run mypy "src/$PKG"
 
@@ -117,8 +124,8 @@ jobs:
         if: matrix.language == 'python'
         working-directory: ${{ steps.generate.outputs.dst_dir }}
         run: |
-          export PATH="$HOME/.local/bin:$PATH"
-          uv run pytest --cov=src/test_package --cov-report=term-missing -v
+          PKG=$(ls src/ | head -1)
+          uv run pytest --cov="src/$PKG" --cov-report=term-missing -v
 
       # ========== Go 完整检查 ==========
       - name: Go — 验证模块
@@ -129,6 +136,7 @@ jobs:
           go mod tidy
           go vet ./...
           go build ./...
+          go test ./...
 
       # ========== TypeScript 完整检查 ==========
       - name: TypeScript — 安装依赖

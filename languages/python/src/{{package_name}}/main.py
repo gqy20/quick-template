@@ -1,8 +1,9 @@
 """{{package_name }} 应用程序的主入口"""
 
 import asyncio
-from pydantic import BaseModel, Field
+from importlib.util import find_spec
 
+from pydantic import BaseModel, Field
 from rich.panel import Panel
 from rich.table import Table
 
@@ -10,16 +11,16 @@ from {{package_name}}.core import add, greet
 from {{package_name}}.logger import console, logger, print_header, print_success
 
 # Agent SDK 模块可选导入
-try:
+if find_spec("claude_agent_sdk") is not None:
     from {{package_name}}.agent import (
         AgentRunner,
-        output_format_schema,
-        sentiment_schema,
         code_review_schema,
+        output_format_schema,
         structured_query,
     )
+
     HAS_AGENT_SDK = True
-except ImportError:
+else:
     HAS_AGENT_SDK = False
 
 
@@ -81,6 +82,7 @@ def demo_logging() -> None:
 
 class SentimentOutput(BaseModel):
     """情感分析输出模型。"""
+
     sentiment: str = Field(description="情感倾向: positive/negative/neutral")
     confidence: float = Field(description="置信度 0-1")
     keywords: list[str] = Field(description="关键词列表")
@@ -88,6 +90,7 @@ class SentimentOutput(BaseModel):
 
 class CodeIssue(BaseModel):
     """代码问题。"""
+
     severity: str = Field(description="严重程度: critical/major/minor/info")
     line: int | None = Field(default=None, description="行号")
     description: str = Field(description="问题描述")
@@ -96,6 +99,7 @@ class CodeIssue(BaseModel):
 
 class CodeReviewOutput(BaseModel):
     """代码审查输出模型。"""
+
     score: int = Field(description="代码评分 0-10", ge=0, le=10)
     issues: list[CodeIssue] = Field(default_factory=list, description="问题列表")
     overall: str = Field(description="总体评价")
@@ -126,7 +130,9 @@ async def demo_agent_sentiment() -> None:
         max_turns=1,
     )
 
-    console.print("[cyan]查询: 分析「这个产品太棒了！物流很快，客服也很耐心。」[/cyan]\n")
+    console.print(
+        "[cyan]查询: 分析「这个产品太棒了！物流很快，客服也很耐心。」[/cyan]\n"
+    )
     result = await runner.run(
         "分析以下文本的情感倾向：这个产品太棒了！物流很快，客服也很耐心。",
         SentimentOutput,
@@ -153,14 +159,14 @@ async def demo_agent_code_review() -> None:
 
     print_header("Agent SDK — 结构化输出（代码审查）")
 
-    sample_code = '''def calc(x, y):
+    sample_code = """def calc(x, y):
     return x+y
 
 def process(data):
     results = []
     for i in data:
         results.append(calc(i, i*2))
-    return results'''
+    return results"""
 
     console.print(f"[dim]待审查代码:[/dim]\n[dim]{sample_code}[/dim]\n")
 
@@ -247,7 +253,9 @@ async def demo_agent_quick_query() -> None:
 async def run_agent_demos() -> None:
     """运行所有 Agent SDK 演示（异步）。"""
     if not HAS_AGENT_SDK:
-        console.print("[yellow]Agent SDK 演示已跳过（claude-agent-sdk 未安装）[/yellow]\n")
+        console.print(
+            "[yellow]Agent SDK 演示已跳过（claude-agent-sdk 未安装）[/yellow]\n"
+        )
         return
 
     await demo_agent_sentiment()

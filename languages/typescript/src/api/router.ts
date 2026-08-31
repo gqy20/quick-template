@@ -1,4 +1,4 @@
-/**
+{{#if add_api}}/**
  * API 路由（Hono）
  */
 import { Hono } from "hono";
@@ -14,4 +14,4 @@ app.get("/api/v1/health", (c) => {
   });
 });
 
-// TODO: 注册更多路由
+// TODO: 注册更多路由{{#endif}}

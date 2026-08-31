@@ -65,7 +65,6 @@ def output_format_schema(model_class: type[BaseModel]) -> dict[str, Any]:
         schema = output_format_schema(AuditResult)
         # => {"type": "json_schema", "schema": {...}, "name": "AuditResult", "strict": True}
     """
-    import json
     from copy import deepcopy
 
     schema = model_class.model_json_schema()

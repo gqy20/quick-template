@@ -22,26 +22,26 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.inputs.tag || github.ref }}
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v2
+        uses: astral-sh/setup-uv@v10
         with:
           version: "latest"
           python-version: "{{ python_version }}"
 
       - name: Install dependencies
-        run: uv sync --all-dev
+        run: uv sync --all-groups
 
       - name: Run full test suite
         run: uv run pytest -v --cov=src/{{package_name}} --cov-report=xml --cov-report=term-missing
 
       - name: Run linting
         run: |
-          uv run ruff check .
-          uv run ruff format --check .
+          uv run ruff check src tests scripts
+          uv run ruff format --check src tests scripts
 
       - name: Verify version matches tag
         run: |
@@ -64,12 +64,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.inputs.tag || github.ref }}
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v2
+        uses: astral-sh/setup-uv@v10
         with:
           version: "latest"
           python-version: "{{ python_version }}"
@@ -78,7 +78,7 @@ jobs:
         run: uv build
 
       - name: Check distribution packages
-        run: uv pip install twine && uv run twine check dist/*
+        run: uvx twine check dist/*
 
       - name: Upload distribution artifacts
         uses: actions/upload-artifact@v4
@@ -125,14 +125,14 @@ jobs:
   test-and-publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "{{ node_version }}"
           registry-url: https://registry.npmjs.org/
 
-      - run: npm ci
+      - run: npm install
 
       - run: npm test
 
@@ -144,6 +144,4 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
 {{#elif language == 'golang'}}
-# Go 项目通常不需要发布工作流
-# 如需发布，可在此配置 Docker 构建或 goreleaser
 {{#endif}}

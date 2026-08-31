@@ -1,5 +1,4 @@
-{{#if add_api}}
-import { describe, it, expect } from "vitest";
+{{#if add_api}}import { describe, expect, it } from "vitest";
 import { app } from "../src/api/router.js";
 
 describe("API 路由", () => {
@@ -14,5 +13,4 @@ describe("API 路由", () => {
       });
     });
   });
-});
-{{#endif}}
+});{{#endif}}

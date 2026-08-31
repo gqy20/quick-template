@@ -396,7 +396,7 @@ async def list_users(skip: int = 0, limit: int = 10):
 # ==================== 主函数 ====================
 
 
-def main():
+def main() -> None:
     """运行 FastAPI 应用。
 
     使用 uvicorn 启动服务器。
@@ -408,5 +408,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-{{#endif}}
+    main(){{#endif}}

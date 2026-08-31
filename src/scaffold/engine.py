@@ -11,7 +11,7 @@
 
 import re
 
-_IF_RE = re.compile(r"\{\{#if\s*[\w'\"=.!]+\}\}")
+_IF_RE = re.compile(r"\{\{#if\s+.+?\}\}")
 _ENDIF_RE = re.compile(r"\{\{#endif\}\}")
 
 
@@ -96,7 +96,7 @@ def _is_leaf_block(content: str) -> bool:
         if m.start() == 0:
             continue
         # 这个 {{#if 必须在当前块内（不在 elif/else 分支中）
-        prefix = content[:m.start()]
+        prefix = content[: m.start()]
         if "{{#elif" in prefix or "{{#else" in prefix:
             continue
         return True
@@ -122,7 +122,7 @@ def process_conditionals(content: str, vars_dict: dict) -> str:
             for im in _IF_RE.finditer(block):
                 if im.start() == 0:
                     continue
-                prefix = block[:im.start()]
+                prefix = block[: im.start()]
                 if "{{#elif" in prefix or "{{#else" in prefix:
                     continue
                 has_nested = True

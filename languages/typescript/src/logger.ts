@@ -22,7 +22,8 @@ const COLORS = {
 
 function formatMessage(level: LogLevel, msg: string): string {
   const timestamp = new Date().toISOString();
-  const color = level === "error" ? COLORS.red : level === "warn" ? COLORS.yellow : COLORS.green;
+  const color =
+    level === "error" ? COLORS.red : level === "warn" ? COLORS.yellow : COLORS.green;
   return `${COLORS.dim}[${timestamp}]${COLORS.reset} ${color}[${level.toUpperCase()}]${COLORS.reset} ${msg}`;
 }
 

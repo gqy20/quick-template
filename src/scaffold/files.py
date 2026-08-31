@@ -31,7 +31,11 @@ def copy_template_dir(src_dir: Path | str, dst_base: Path | str, vars_dict: dict
         dst = dst_base / Path(*rendered_parts)
 
         dst.parent.mkdir(parents=True, exist_ok=True)
-        content = item.read_text(encoding="utf-8")
+        try:
+            content = item.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            dst.write_bytes(item.read_bytes())
+            continue
         rendered = process_file(content, vars_dict)
         if not rendered.strip():
             continue

@@ -1,16 +1,13 @@
-package tests
+{{#if add_api}}package tests
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	{{#if add_api}}
 	"github.com/gin-gonic/gin"
-	{{#endif}}
 )
 
-{{#if add_api}}
 func TestHealthCheck(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
@@ -29,5 +26,4 @@ func TestHealthCheck(t *testing.T) {
 	if w.Code != http.StatusOK {
 		t.Errorf("expected status 200, got %d", w.Code)
 	}
-}
-{{#endif}}
+}{{#endif}}

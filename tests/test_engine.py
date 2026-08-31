@@ -1,8 +1,6 @@
 """scaffold 引擎核心测试 — TDD 红绿重构。"""
 
-import pytest
-
-from scaffold.engine import render, substitute_vars, process_conditionals
+from scaffold.engine import process_conditionals, render, substitute_vars
 from scaffold.variables import ProjectVars
 
 
@@ -31,19 +29,34 @@ class TestEvalCondition:
 
     def test_truthy(self):
         from scaffold.engine import _eval_condition
+
         assert _eval_condition("add_api", {"add_api": True}) is True
         assert _eval_condition("add_api", {"add_api": False}) is False
         assert _eval_condition("missing", {}) is False
 
     def test_eq_string(self):
         from scaffold.engine import _eval_condition
+
         assert _eval_condition("lang=='python'", {"lang": "python"}) is True
         assert _eval_condition("lang=='python'", {"lang": "go"}) is False
 
     def test_neq_string(self):
         from scaffold.engine import _eval_condition
+
         assert _eval_condition("lang!='python'", {"lang": "go"}) is True
         assert _eval_condition("lang!='python'", {"lang": "python"}) is False
+
+    def test_eq_url(self):
+        """条件值可以包含 URL 等标点。"""
+        from scaffold.engine import _eval_condition
+
+        values = {"provider": "https://github.com"}
+        assert _eval_condition("provider=='https://github.com'", values) is True
+
+    def test_condition_with_url_is_rendered(self):
+        template = "{{#if provider=='https://github.com'}}github{{#else}}custom{{#endif}}"
+        values = {"provider": "https://github.com"}
+        assert process_conditionals(template, values) == "github"
 
 
 class TestProcessConditionals:
@@ -91,7 +104,7 @@ class TestProcessConditionals:
         """模拟 README.md 的嵌套：language + add_api。"""
         tmpl = (
             '{{#if language=="python"}}'
-            '{{#if add_api}}py+api{{#else}}py{{#endif}}'
+            "{{#if add_api}}py+api{{#else}}py{{#endif}}"
             '{{#elif language=="golang"}}go{{#else}}ts{{#endif}}'
         )
         assert process_conditionals(tmpl, {"language": "python", "add_api": True}) == "py+api"

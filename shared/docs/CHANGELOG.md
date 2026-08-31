@@ -13,12 +13,10 @@
 ## [0.1.0] - {{copyright_date}}
 
 ### Added
-- 初始项目结构（src layout）
-- 核心功能模块
-- pytest 测试套件
-- ruff 代码检查与格式化
-- Rich 日志系统
+- 初始项目结构
+- 核心功能与测试套件
+- 代码检查、格式化和类型检查
 - GitHub Actions CI 工作流
 {{#if add_api}}
-- FastAPI 应用示例
+- API 应用示例
 {{#endif}}

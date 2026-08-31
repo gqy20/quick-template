@@ -3,7 +3,9 @@
 import json
 from pathlib import Path
 
-from scaffold.cli import build_vars, parse_args
+import pytest
+
+from scaffold.cli import build_vars, get_template_root, parse_args, prepare_output_dir
 
 
 class TestParseArgs:
@@ -35,6 +37,35 @@ class TestParseArgs:
     def test_add_api_flag(self):
         args = parse_args(["--add-api"])
         assert args.add_api is True
+
+    def test_force_flag(self):
+        args = parse_args(["--force"])
+        assert args.force is True
+
+
+def test_template_root_contains_active_templates():
+    root = get_template_root()
+    assert (root / "languages").is_dir()
+    assert (root / "shared").is_dir()
+
+
+def test_prepare_output_dir_rejects_non_empty_directory(tmp_path):
+    output = tmp_path / "existing"
+    output.mkdir()
+    (output / "keep.txt").write_text("important")
+
+    with pytest.raises(FileExistsError, match="--force"):
+        prepare_output_dir(output, force=False)
+
+
+def test_prepare_output_dir_allows_force(tmp_path):
+    output = tmp_path / "existing"
+    output.mkdir()
+    (output / "keep.txt").write_text("important")
+
+    prepare_output_dir(output, force=True)
+
+    assert (output / "keep.txt").read_text() == "important"
 
 
 class TestBuildVars:

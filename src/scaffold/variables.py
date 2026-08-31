@@ -2,6 +2,7 @@
 
 from datetime import date
 from pathlib import Path
+
 from pydantic import BaseModel, ConfigDict
 
 _DEFAULTS: dict = {
@@ -13,10 +14,9 @@ _DEFAULTS: dict = {
     "license": "MIT",
     "language": "python",
     "python_version": "3.13",
-    "go_version": "1.24",
-    "node_version": "22",
+    "go_version": "1.27",
+    "node_version": "24",
     "add_api": True,
-    "add_cli": False,
     "line_length": 88,
     "repository_provider": "https://github.com",
 }
@@ -35,10 +35,9 @@ class ProjectVars(BaseModel):
     license: str = "MIT"
     language: str = "python"
     python_version: str = "3.13"
-    go_version: str = "1.24"
-    node_version: str = "22"
+    go_version: str = "1.27"
+    node_version: str = "24"
     add_api: bool = True
-    add_cli: bool = False
     line_length: int = 88
     repository_provider: str = "https://github.com"
 

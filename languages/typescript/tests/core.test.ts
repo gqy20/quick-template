@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { greet, add } from "../src/core.js";
+import { describe, expect, it } from "vitest";
+import { add, greet } from "../src/core.js";
 
 describe("核心功能", () => {
   describe("greet", () => {

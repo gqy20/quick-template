@@ -4,7 +4,7 @@
 install:
 {{#if language == 'python'}}
 	uv venv
-	uv sync --all-dev
+	uv sync --all-groups
 	uv run pre-commit install
 {{#elif language == 'golang'}}
 	go mod download
@@ -15,7 +15,7 @@ install:
 # ---- 代码检查 ----
 check:
 {{#if language == 'python'}}
-	uv run ruff check .
+	uv run ruff check src tests scripts
 {{#elif language == 'golang'}}
 	golangci-lint run ./...
 	go vet ./...
@@ -26,7 +26,7 @@ check:
 # ---- 格式化 ----
 format:
 {{#if language == 'python'}}
-	uv run ruff format .
+	uv run ruff format src tests scripts
 {{#elif language == 'golang'}}
 	gofmt -w .
 	goimports -w .

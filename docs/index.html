@@ -4,14 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>quick-template — 多语言项目模板</title>
-  <meta name="description" content="支持 Python / Go / TypeScript 的多语言项目脚手架模板，基于 Copier 秒级生成规范项目" />
+  <meta name="description" content="支持 Python / Go / TypeScript 的轻量多语言项目脚手架 CLI" />
   <link rel="stylesheet" href="assets/style.css" />
 </head>
 <body>
   <!-- Hero -->
   <header class="hero">
     <div class="container">
-      <div class="hero-badge">Copier Template</div>
+      <div class="hero-badge">Native Scaffold CLI</div>
       <img src="logo.svg" alt="quick-template logo" class="logo" width="72" height="72" />
       <h1>quick-<span class="gradient">template</span></h1>
       <p class="hero-desc">一套模板，三种语言。秒级生成规范项目。</p>
@@ -20,7 +20,7 @@
           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19 0-.82 0-1.63-2.78-.62-3.37-1.53-3.44-3.06H8c.05.67.23 1.25.58 1.94.82.72 1.21 1.87.87 3.96 3.33 1.31.46 2.79.69 4.27.69 2.48 0 4.57-1.13 5.71-3.29V8.44c0-.81-.03-1.57-.09-2.27H8v3.89h4.17c-.42 1.77-2.22 3.01-4.17 3.01-2.45 0-4.43-1.99-4.43-4.44s1.98-4.43 4.43-4.43c1.11 0 2.11.37 2.92 1.02l2.9-2.9C15.89 2.76 12.11 2 8 2Z"/></svg>
           GitHub
         </a>
-        <code class="cmd">copier copy gh:gqy20/quick-template my-project</code>
+        <code class="cmd">quick-template --language python --output-dir my-project</code>
       </div>
     </div>
   </header>
@@ -177,19 +177,19 @@
         <div class="step">
           <div class="step-num">1</div>
           <h4>选择语言</h4>
-          <p>Copier 交互式询问，选择 Python / Go / TypeScript</p>
+          <p>通过 CLI 参数选择 Python / Go / TypeScript</p>
         </div>
         <div class="step-arrow">→</div>
         <div class="step">
           <div class="step-num">2</div>
           <h4>配置选项</h4>
-          <p>项目名称、作者、是否添加 API/CLI、开源协议等</p>
+          <p>通过 JSON 配置项目名称、作者、API 和开源协议</p>
         </div>
         <div class="step-arrow">→</div>
         <div class="step">
           <div class="step-num">3</div>
           <h4>一键生成</h4>
-          <p>Copier 根据 Jinja2 条件渲染对应语言的完整项目</p>
+          <p>内置引擎组合语言模板和公共工程配置</p>
         </div>
         <div class="step-arrow">→</div>
         <div class="step">

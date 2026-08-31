@@ -20,22 +20,22 @@ jobs:
     name: Python 测试
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: 安装 uv
-        uses: astral-sh/setup-uv@v2
+        uses: astral-sh/setup-uv@v10
         with:
           version: "latest"
           python-version: "{{ python_version }}"
 
       - name: 安装依赖
-        run: uv sync
+        run: uv sync --all-groups
 
       - name: 运行 ruff 检查
-        run: uv run ruff check .
+        run: uv run ruff check src tests scripts
 
       - name: 运行 ruff 格式检查
-        run: uv run ruff format --check .
+        run: uv run ruff format --check src tests scripts
 
       - name: 运行 mypy 类型检查
         run: uv run mypy src/{{ package_name }}
@@ -48,7 +48,7 @@ jobs:
     name: Go 测试
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: 设置 Go
         uses: actions/setup-go@v5
@@ -59,9 +59,9 @@ jobs:
         run: go mod download
 
       - name: 运行 golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v9
         with:
-          version: latest
+          version: v2.13.2
 
       - name: 运行 go vet
         run: go vet ./...
@@ -70,9 +70,9 @@ jobs:
         run: go test ./... -race -coverprofile=coverage.out -count=1
 
       - name: 上传覆盖率
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
-          file: ./coverage.out
+          files: ./coverage.out
           fail_ci_if_error: false
 
 {{#elif language == 'typescript'}}
@@ -80,16 +80,15 @@ jobs:
     name: TypeScript 测试
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: 设置 Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: "{{ node_version }}"
-          cache: npm
 
       - name: 安装依赖
-        run: npm ci
+        run: npm install
 
       - name: 运行 Biome 检查
         run: npx biome check .

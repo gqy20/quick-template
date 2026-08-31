@@ -12,9 +12,9 @@ var defaultLogger *slog.Logger
 // Init 初始化日志系统
 func Init(level slog.Level) {
 	opts := &slog.HandlerOptions{
-		Level: level,
+		Level:     level,
 		AddSource: true,
-		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+		ReplaceAttr: func(_ []string, a slog.Attr) slog.Attr {
 			// 将时间格式化为更友好的格式
 			if a.Key == slog.TimeKey {
 				a.Value = slog.StringValue(a.Value.Time().Format("2006-01-02 15:04:05"))

@@ -2,7 +2,9 @@ module {{#if repository_provider=='https://github.com'}}github.com/{{repository_
 
 go {{ go_version }}
 
+{{#if add_api}}
 require (
 	github.com/gin-contrib/cors v1.7.2
 	github.com/gin-gonic/gin v1.10.0
 )
+{{#endif}}
