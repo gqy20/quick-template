@@ -2,6 +2,9 @@
 
 import json
 from pathlib import Path
+from typing import Any
+
+import yaml
 
 from .engine import render
 
@@ -42,10 +45,21 @@ def copy_template_dir(src_dir: Path | str, dst_base: Path | str, vars_dict: dict
         dst.write_text(rendered, encoding="utf-8")
 
 
-def load_data_file(path: Path | str) -> dict:
-    """加载 JSON 数据文件。"""
+def load_data_file(path: Path | str) -> dict[str, Any]:
+    """加载 JSON 或 YAML 数据文件。"""
     p = Path(path)
     if not p.exists():
         raise FileNotFoundError(f"Data file not found: {p}")
-    with open(p, encoding="utf-8") as f:
-        return json.load(f)
+    with open(p, encoding="utf-8") as file:
+        if p.suffix.lower() == ".json":
+            data = json.load(file)
+        elif p.suffix.lower() in {".yaml", ".yml"}:
+            data = yaml.safe_load(file)
+        else:
+            raise ValueError(f"Unsupported data file format: {p.suffix}")
+
+    if data is None:
+        return {}
+    if not isinstance(data, dict):
+        raise ValueError("Project configuration must be a mapping")
+    return data

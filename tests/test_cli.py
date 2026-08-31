@@ -42,6 +42,11 @@ class TestParseArgs:
         args = parse_args(["--force"])
         assert args.force is True
 
+    def test_version_flag(self, capsys):
+        with pytest.raises(SystemExit, match="0"):
+            parse_args(["--version"])
+        assert capsys.readouterr().out.strip() == "pytest 0.3.0"
+
 
 def test_template_root_contains_active_templates():
     root = get_template_root()

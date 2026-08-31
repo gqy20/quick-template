@@ -3,6 +3,7 @@
 import argparse
 from pathlib import Path
 
+from . import __version__
 from .files import copy_template_dir
 from .variables import ProjectVars
 
@@ -24,6 +25,7 @@ def prepare_output_dir(output: Path, force: bool) -> None:
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Multi-language project scaffolding tool")
+    p.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     p.add_argument("--language", choices=["python", "golang", "typescript"], default="python")
     p.add_argument("--output-dir", type=Path, default=None)
     p.add_argument("--data-file", type=Path, default=None)

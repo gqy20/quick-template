@@ -12,7 +12,30 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  package-smoke:
+    name: Wheel 安装冒烟测试
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v7
+
+      - name: 安装 uv
+        uses: astral-sh/setup-uv@v10
+        with:
+          python-version: "3.13"
+
+      - name: 构建并安装 wheel
+        run: |
+          uv build
+          SMOKE_ENV="$RUNNER_TEMP/quick-template-smoke"
+          uv venv "$SMOKE_ENV"
+          uv pip install --python "$SMOKE_ENV/bin/python" dist/*.whl
+          "$SMOKE_ENV/bin/quick-template" +            --language typescript +            --no-add-api +            --output-dir "$RUNNER_TEMP/generated-project"
+          test -f "$RUNNER_TEMP/generated-project/package.json"
+          test -f "$RUNNER_TEMP/generated-project/AGENTS.md"
+
   test-template:
+    needs: package-smoke
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

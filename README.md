@@ -41,7 +41,7 @@ quick-template --language golang --no-add-api --output-dir ./my-go-app
 quick-template --language typescript --output-dir ./my-ts-app
 ```
 
-可通过 JSON 文件覆盖项目变量：
+可通过 JSON 或 YAML 文件覆盖项目变量：
 
 ```json
 {
@@ -59,6 +59,15 @@ quick-template \
   --language python \
   --data-file project.json \
   --output-dir ./my-service
+```
+
+YAML 配置同样可用：
+
+```yaml
+project_name: My Service
+repository_username: gqy20
+author_name: gqy20
+line_length: 100
 ```
 
 ## 项目结构
@@ -89,7 +98,6 @@ CI 会验证 Python、Go、TypeScript 各自启用和关闭 API 的 6 种组合�
 
 ## 当前边界
 
-- 配置文件目前仅支持 JSON。
 - 默认拒绝写入非空目录；确认需要覆盖时可显式传入 `--force`。
 - 自研引擎暂不提供类似 `copier update` 的增量模板合并能力。
 

@@ -1,12 +1,13 @@
 [project]
 name = "quick-template"
-version = "0.2.0"
+version = "0.3.0"
 description = "Multi-language project scaffolding tool (Python / Go / TypeScript)"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 dependencies = [
     "pydantic>=2.0",
+    "pyyaml>=6.0",
 ]
 
 [project.optional-dependencies]
@@ -33,8 +34,10 @@ packages = ["src/scaffold"]
 [dependency-groups]
 dev = [
     "mypy>=1.15",
-    "pytest>=8.0",
+    "pytest>=8.0,<9",
+    "pytest-bdd>=8.0",
     "ruff>=0.9",
+    "types-pyyaml>=6.0",
 ]
 
 [tool.pytest.ini_options]
