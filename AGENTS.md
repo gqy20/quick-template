@@ -55,6 +55,8 @@ commit、push、Tag、Release 或其他外部写入许可。
 - Agent 运行配置：`languages/python/config/agent.yaml`
 - Prompt 资产：`languages/python/config/prompts/`
 - LangGraph Runtime：`languages/python/src/{{package_name}}/langgraph_agent.py`
+- LangGraph 工具与 MCP 适配：
+  `languages/python/src/{{package_name}}/langgraph_tools.py`
 - LangGraph 配置：`languages/python/config/runtimes/langgraph.yaml`
 - MCP / Skills 配置：`languages/python/.mcp.json`、`.claude/skills/`
 - 文档站实现：`docs/`
@@ -116,6 +118,8 @@ commit、push、Tag、Release 或其他外部写入许可。
 - `AGENTS.md` 是跨 Agent 规范事实源；`CLAUDE.md` 只做路由或平台特有补充。
 - `DESIGN.md` 保存稳定设计契约；截图、差异和迭代历史写入独立 Design QA。
 - 多 Runtime 共享 Prompt、Pydantic 输出和高层日志，但保留各自原生状态与工具语义。
+- `.mcp.json` 只声明连接；LangGraph MCP 工具必须由 Runtime 配置显式授权，
+  协议与会话交给官方 Adapter。
 
 ## 工作区与 Git 安全
 

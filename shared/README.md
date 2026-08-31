@@ -87,8 +87,11 @@ Claude 原生入口：
 
 LangGraph 入口：
 
-- `config/runtimes/langgraph.yaml`：模型、重试、超时、递归和 checkpoint。
-- `src/{{ package_name }}/langgraph_agent.py`：显式结构化 StateGraph。
+- `config/runtimes/langgraph.yaml`：模型、工具轮次、MCP 授权、超时和 checkpoint。
+- `src/{{ package_name }}/langgraph_agent.py`：显式结构化 StateGraph 与原生
+  `ToolNode` 循环。
+- `src/{{ package_name }}/langgraph_tools.py`：把共享 `.mcp.json` 连接配置交给
+  `langchain-mcp-adapters`，不自行实现 MCP 协议。
 - `examples/langgraph_review.py`：默认离线、显式 `--run` 的对照示例。
 
 真实运行：
@@ -96,6 +99,13 @@ LangGraph 入口：
 ```bash
 uv run --extra agent-langgraph python examples/langgraph_review.py --run
 ```
+
+LangGraph 中，程序显式传入的本地 `BaseTool` 视为代码授权；MCP Server 配置
+不等于工具授权。`mcp_allowed_tools` 默认为 `[]`，此时不会连接 MCP；启用
+`tool_name_prefix` 后，授权名称使用 Adapter 暴露的 `server_tool` 形式。
+工具调用只记录名称、参数键、状态、耗时和异常类型，不记录参数值或结果正文。
+工具通过 `interrupt()` 暂停后，使用 `runtime.resume(thread_id, value, Model)`
+从内存 checkpoint 恢复；进程重启恢复需要把默认 checkpointer 换成持久实现。
 
 Claude 的 `skills` 使用 SDK 原生精确名称过滤；MCP 使用原生配置路径。
 默认禁用内置工具和 Skills，permission mode 为 `dontAsk`。

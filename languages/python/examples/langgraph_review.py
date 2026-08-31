@@ -19,7 +19,7 @@ async def run_demo() -> None:
         language="Python",
         code=SAMPLE_CODE,
     )
-    runtime = LangGraphReviewRuntime.with_anthropic()
+    runtime = await LangGraphReviewRuntime.with_anthropic_and_mcp()
     result = await runtime.run(prompt, CodeReviewOutput)
     print(result.model_dump_json(indent=2))
 

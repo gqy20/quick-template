@@ -105,8 +105,9 @@ Python 模板提供两种可选、可对照的 Agent Runtime：
 
 - Claude Agent SDK：`claude-agent-sdk==0.2.148`，使用原生 Agent loop、
   MCP、Skills 与权限。
-- LangGraph：`langgraph==1.2.11` + `langchain-anthropic==1.7.0`，
-  使用显式 StateGraph、校验重试和 checkpoint。
+- LangGraph：`langgraph==1.2.11` + `langchain-anthropic==1.7.0` +
+  `langchain-mcp-adapters==0.3.2`，使用显式 StateGraph、原生 `ToolNode`、
+  校验重试和 checkpoint。
 
 两者共享：
 
@@ -115,7 +116,12 @@ Python 模板提供两种可选、可对照的 Agent Runtime：
 - `agent_log.py` 脱敏结构化日志。
 
 Claude 使用 `config/agent.yaml` 与 `.mcp.json`；LangGraph 使用
-`config/runtimes/langgraph.yaml`。LangGraph 示例位于
+`config/runtimes/langgraph.yaml`，并把同一 `.mcp.json` 转换给官方 MCP
+Adapter。LangGraph 工具路径为 `model → ToolNode → model → structured output`，
+工具参数与结果正文不会写入默认审计日志。`.mcp.json` 只声明连接，MCP 工具
+还必须在 `mcp_allowed_tools` 中按 Adapter 最终名称显式授权；空列表不会连接
+任何 MCP Server。工具中的 `interrupt()` 会保留 checkpoint，可用 Runtime 的
+`resume()` 和原 thread ID 恢复。LangGraph 示例位于
 `examples/langgraph_review.py`，真实模型必须显式传入 `--run`。
 
 Claude CLI 完整 transcript 默认写入临时目录并在运行后删除；需要恢复会话时

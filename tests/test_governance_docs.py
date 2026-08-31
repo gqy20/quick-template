@@ -103,6 +103,7 @@ def test_python_agent_uses_native_mcp_skills_and_logging_config(tmp_path):
     assert "claude-agent-sdk==0.2.148" in pyproject
     assert "langgraph==1.2.11" in pyproject
     assert "langchain-anthropic==1.7.0" in pyproject
+    assert "langchain-mcp-adapters==0.3.2" in pyproject
     assert (output / "src" / "test_project" / "agent_log.py").is_file()
     assert (output / ".claude" / "skills" / "README.md").is_file()
     assert (output / "config" / "prompts" / "default.yaml").is_file()
@@ -110,5 +111,11 @@ def test_python_agent_uses_native_mcp_skills_and_logging_config(tmp_path):
     assert (output / "src" / "test_project" / "agent_state.py").is_file()
     assert (output / "src" / "test_project" / "agent_models.py").is_file()
     assert (output / "src" / "test_project" / "langgraph_agent.py").is_file()
+    assert (output / "src" / "test_project" / "langgraph_tools.py").is_file()
     assert (output / "config" / "runtimes" / "langgraph.yaml").is_file()
     assert (output / "examples" / "langgraph_review.py").is_file()
+    langgraph_config = yaml.safe_load(
+        (output / "config" / "runtimes" / "langgraph.yaml").read_text()
+    )
+    assert langgraph_config["mcp_allowed_tools"] == []
+    assert langgraph_config["tool_name_prefix"] is True

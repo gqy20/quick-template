@@ -37,8 +37,10 @@
 - 测试：pytest；lint / format：Ruff；类型检查：Mypy
 - Agent 配置：`config/agent.yaml`；Prompt：`config/prompts/*.yaml`
 - LangGraph 配置：`config/runtimes/langgraph.yaml`
+- LangGraph 工具适配：`src/{{ package_name }}/langgraph_tools.py`
 - MCP：`.mcp.json`；Skills：`.claude/skills/`
 - Agent 审计日志：`logs/agent/events.jsonl`，默认不得记录正文或工具值
+- `.mcp.json` 只声明连接；LangGraph MCP 工具还需在 Runtime 配置显式授权
 - Claude CLI 完整 transcript 默认使用临时目录，不写入用户全局 `~/.claude`
 {{#elif language == 'golang'}}- 运行时：Go {{ go_version }}+
 - 依赖管理：Go Modules

@@ -9,6 +9,8 @@
 - 新增 Claude Agent SDK 的结构化 JSONL 日志、MCP、Skills 与项目配置。
 - 新增版本化 YAML Prompt Registry 和 ephemeral/project/default Session 状态隔离。
 - 新增 LangGraph 1.2.11 结构化工作流、离线 Fake Model 测试和显式运行示例。
+- 为 LangGraph 增加原生 `ToolNode` 工具循环、MCP Adapter、默认拒绝的 MCP
+  工具授权、轮次上限和脱敏工具审计日志。
 
 ### Changed
 

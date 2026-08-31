@@ -3,6 +3,11 @@ temperature: 0
 max_attempts: 2
 provider_retry_attempts: 3
 model_timeout_seconds: 60
-recursion_limit: 12
+recursion_limit: 24
+max_tool_rounds: 4
 checkpoint: memory
+mcp_config: .mcp.json
+tool_name_prefix: true
+# `.mcp.json` 只声明连接；这里按 Adapter 暴露的最终名称显式授权工具。
+mcp_allowed_tools: []
 jsonl_path: logs/agent/langgraph.jsonl
