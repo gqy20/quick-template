@@ -57,25 +57,48 @@
 {{#endif}}
 
 {{#if language == 'python'}}
-## Claude Agent SDK（可选）
+## Agent Runtimes（可选）
 
-安装可选依赖：
+Claude Agent SDK：
 
 ```bash
 uv sync --extra agent
 ```
 
-原生配置入口：
+LangGraph：
+
+```bash
+uv sync --extra agent-langgraph
+```
+
+共享契约：
+
+- `config/prompts/*.yaml`：有版本和变量契约的 Runtime-neutral Prompt。
+- `src/{{ package_name }}/agent_models.py`：共享 Pydantic 输出。
+- `src/{{ package_name }}/agent_log.py`：共享脱敏 JSONL 日志。
+
+Claude 原生入口：
 
 - `config/agent.yaml`：模型、工具、权限、MCP/Skills、日志和状态模式。
-- `config/prompts/*.yaml`：有版本和变量契约的 Prompt。
 - `.mcp.json`：Claude Code 原生 MCP server 配置。
 - `.claude/skills/<name>/SKILL.md`：项目 Skills。
 - `logs/agent/events.jsonl`：脱敏后的结构化 Agent 执行日志。
 - `.agent-state/claude/`：仅在持久 Session 模式使用的完整 transcript。
 
-`skills` 使用 SDK 原生精确名称过滤；MCP 使用 `mcp_servers` 原生配置路径。
-默认禁用内置工具和 Skills，permission mode 为 `dontAsk`，不会自动批准未知操作。
+LangGraph 入口：
+
+- `config/runtimes/langgraph.yaml`：模型、重试、超时、递归和 checkpoint。
+- `src/{{ package_name }}/langgraph_agent.py`：显式结构化 StateGraph。
+- `examples/langgraph_review.py`：默认离线、显式 `--run` 的对照示例。
+
+真实运行：
+
+```bash
+uv run --extra agent-langgraph python examples/langgraph_review.py --run
+```
+
+Claude 的 `skills` 使用 SDK 原生精确名称过滤；MCP 使用原生配置路径。
+默认禁用内置工具和 Skills，permission mode 为 `dontAsk`。
 普通 `main` 保持离线；只有显式运行 `python -m {{ package_name }}.main --agent-demo`
 才会调用真实 Claude。
 

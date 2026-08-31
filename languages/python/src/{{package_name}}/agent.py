@@ -14,6 +14,7 @@ import yaml
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from {{ package_name }}.agent_log import AgentEventLogger, redact_text
+from {{ package_name }}.agent_models import CodeReviewOutput, SentimentOutput
 from {{ package_name }}.agent_state import RuntimeStateConfig, runtime_state_env
 from {{ package_name }}.logger import console
 from {{ package_name }}.prompt import RenderedPrompt
@@ -237,6 +238,7 @@ class AgentRunner:
             ) from error
 
         prompt_text, system_prompt, prompt_fields = _resolve_prompt(prompt)
+        self.events.start_run()
         try:
             with runtime_state_env(self.config.runtime_state, self.config.cwd) as env:
                 option_kwargs = self.config.to_option_kwargs(
@@ -357,7 +359,7 @@ def _resolve_prompt(
         return prompt, None, {}
     return (
         prompt.text,
-        prompt.system_prompt,
+        claude_system_prompt(prompt.instructions),
         {
             "prompt_id": prompt.id,
             "prompt_version": prompt.version,
@@ -368,29 +370,20 @@ def _resolve_prompt(
     )
 
 
+def claude_system_prompt(instructions: str) -> dict[str, str]:
+    """将 Runtime-neutral instructions 映射为 Claude Code preset。"""
+    return {
+        "type": "preset",
+        "preset": "claude_code",
+        "append": instructions,
+    }
+
+
 def sentiment_schema() -> dict[str, Any]:
     """情感分析 Schema。"""
-
-    class SentimentOutput(BaseModel):
-        sentiment: str
-        confidence: float
-        keywords: list[str]
-
     return output_format_schema(SentimentOutput)
 
 
 def code_review_schema() -> dict[str, Any]:
     """代码审查 Schema。"""
-
-    class CodeIssue(BaseModel):
-        severity: str
-        line: int | None = None
-        description: str
-        suggestion: str | None = None
-
-    class CodeReviewOutput(BaseModel):
-        score: int = Field(description="代码评分 0-10")
-        issues: list[CodeIssue] = Field(default_factory=list)
-        overall: str = Field(description="总体评价")
-
     return output_format_schema(CodeReviewOutput)

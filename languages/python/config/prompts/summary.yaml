@@ -2,11 +2,8 @@ id: summary
 version: 1.0.0
 description: 生成结构化摘要
 tags: [summary]
-system:
-  type: preset
-  preset: claude_code
-  append: |
-    你是技术文档摘要专家。保持事实准确、表达紧凑。
+instructions: |
+  你是技术文档摘要专家。保持事实准确、表达紧凑。
 user_template: |
   $task
 variables:

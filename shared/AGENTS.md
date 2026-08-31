@@ -36,6 +36,7 @@
 - 源码：`src/{{ package_name }}/`
 - 测试：pytest；lint / format：Ruff；类型检查：Mypy
 - Agent 配置：`config/agent.yaml`；Prompt：`config/prompts/*.yaml`
+- LangGraph 配置：`config/runtimes/langgraph.yaml`
 - MCP：`.mcp.json`；Skills：`.claude/skills/`
 - Agent 审计日志：`logs/agent/events.jsonl`，默认不得记录正文或工具值
 - Claude CLI 完整 transcript 默认使用临时目录，不写入用户全局 `~/.claude`
@@ -130,6 +131,8 @@ push 不等于 Tag、Release、部署或对外发送消息。
 - Agent 日志只记录运行元数据、能力加载、工具名、字段名和用量；正文需另行授权。
 - Prompt 行为变化必须升级 YAML 版本；日志记录 Prompt ID、版本和摘要。
 - Session 需要 resume 时才启用 project 状态；不得把 runtime state 写进 `.claude/`。
+- Claude 与 LangGraph 共享 Prompt、输出模型和日志；不得伪造 MCP/Skills 等价语义。
+- LangGraph State 只保存可 checkpoint 数据；model、logger 和 Schema 放入 context。
 {{#elif language == 'golang'}}- `internal/` 保存私有实现，`pkg/` 只放置真正稳定、可复用的公开能力。
 - 错误必须保留上下文并由调用方处理，不以日志代替错误返回。
 {{#elif language == 'typescript'}}- 保持 ESM 与严格类型；不得用 `any` 或无说明断言绕过契约。

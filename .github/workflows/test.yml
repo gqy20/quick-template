@@ -128,7 +128,7 @@ jobs:
         if: matrix.language == 'python'
         working-directory: ${{ steps.generate.outputs.dst_dir }}
         run: |
-          uv sync --all-groups
+          uv sync --all-groups --all-extras
 
       - name: Python — ruff 检查
         if: matrix.language == 'python'

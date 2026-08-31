@@ -7,7 +7,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 from string import Template
-from typing import Any, Literal
+from typing import Any
 
 import yaml
 from pydantic import BaseModel, Field, model_validator
@@ -28,32 +28,6 @@ class PromptVariable(BaseModel):
         return self
 
 
-class PromptSystem(BaseModel):
-    """Claude SDK 原生 system prompt 表达。"""
-
-    type: Literal["preset", "text"] = "preset"
-    preset: Literal["claude_code"] | None = "claude_code"
-    append: str | None = None
-    text: str | None = None
-
-    @model_validator(mode="after")
-    def validate_variant(self) -> "PromptSystem":
-        if self.type == "text" and not self.text:
-            raise ValueError("text system prompts require text")
-        if self.type == "preset" and self.preset != "claude_code":
-            raise ValueError("preset system prompts require claude_code")
-        return self
-
-    def to_sdk(self) -> str | dict[str, str]:
-        """转换为 ClaudeAgentOptions.system_prompt。"""
-        if self.type == "text":
-            return self.text or ""
-        result = {"type": "preset", "preset": "claude_code"}
-        if self.append:
-            result["append"] = self.append
-        return result
-
-
 class PromptDefinition(BaseModel):
     """单个 Prompt YAML 的稳定契约。"""
 
@@ -61,7 +35,7 @@ class PromptDefinition(BaseModel):
     version: str = Field(pattern=r"^\d+\.\d+\.\d+$")
     description: str = Field(min_length=1)
     tags: list[str] = Field(default_factory=list)
-    system: PromptSystem = Field(default_factory=PromptSystem)
+    instructions: str = Field(min_length=1)
     user_template: str = Field(min_length=1)
     variables: dict[str, PromptVariable] = Field(default_factory=dict)
 
@@ -89,7 +63,7 @@ class RenderedPrompt:
     version: str
     description: str
     text: str
-    system_prompt: str | dict[str, str]
+    instructions: str
     definition_sha256: str
     variable_names: tuple[str, ...]
     sensitive_variables: frozenset[str]
@@ -149,7 +123,7 @@ class PromptRegistry:
             version=definition.version,
             description=definition.description,
             text=text,
-            system_prompt=definition.system.to_sdk(),
+            instructions=definition.instructions,
             definition_sha256=source_hash,
             variable_names=tuple(sorted(resolved)),
             sensitive_variables=sensitive,

@@ -54,6 +54,8 @@ commit、push、Tag、Release 或其他外部写入许可。
 - Agent 日志模板：`languages/python/src/{{package_name}}/agent_log.py`
 - Agent 运行配置：`languages/python/config/agent.yaml`
 - Prompt 资产：`languages/python/config/prompts/`
+- LangGraph Runtime：`languages/python/src/{{package_name}}/langgraph_agent.py`
+- LangGraph 配置：`languages/python/config/runtimes/langgraph.yaml`
 - MCP / Skills 配置：`languages/python/.mcp.json`、`.claude/skills/`
 - 文档站实现：`docs/`
 - 模板引擎契约：`src/scaffold/` 与 `tests/`
@@ -113,6 +115,7 @@ commit、push、Tag、Release 或其他外部写入许可。
 - 核心 CLI 依赖保持最小；示例和集成依赖进入可选 extra。
 - `AGENTS.md` 是跨 Agent 规范事实源；`CLAUDE.md` 只做路由或平台特有补充。
 - `DESIGN.md` 保存稳定设计契约；截图、差异和迭代历史写入独立 Design QA。
+- 多 Runtime 共享 Prompt、Pydantic 输出和高层日志，但保留各自原生状态与工具语义。
 
 ## 工作区与 Git 安全
 

@@ -2,11 +2,8 @@ id: sentiment
 version: 1.0.0
 description: 将文本分类为结构化情感结果
 tags: [analysis, classification]
-system:
-  type: preset
-  preset: claude_code
-  append: |
-    你是情感分析专家。仅依据给定文本判断情感、置信度和关键词。
+instructions: |
+  你是情感分析专家。仅依据给定文本判断情感、置信度和关键词。
 user_template: |
   分析以下文本的情感倾向：
 

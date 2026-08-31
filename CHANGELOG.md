@@ -8,6 +8,7 @@
 - 新增语义 Token、响应式、无障碍和 Design QA 驱动的 `DESIGN.md`。
 - 新增 Claude Agent SDK 的结构化 JSONL 日志、MCP、Skills 与项目配置。
 - 新增版本化 YAML Prompt Registry 和 ephemeral/project/default Session 状态隔离。
+- 新增 LangGraph 1.2.11 结构化工作流、离线 Fake Model 测试和显式运行示例。
 
 ### Changed
 

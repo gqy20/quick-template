@@ -3,10 +3,14 @@
 import asyncio
 from importlib.util import find_spec
 
-from pydantic import BaseModel, Field
 from rich.panel import Panel
 from rich.table import Table
 
+from {{package_name}}.agent_models import (
+    CodeReviewOutput,
+    SentimentOutput,
+    SummaryOutput,
+)
 from {{package_name}}.core import add, greet
 from {{package_name}}.logger import console, logger, print_header, print_success
 
@@ -80,31 +84,6 @@ def demo_logging() -> None:
 # ============================================================================
 # Agent SDK 结构化输出演示
 # ============================================================================
-
-
-class SentimentOutput(BaseModel):
-    """情感分析输出模型。"""
-
-    sentiment: str = Field(description="情感倾向: positive/negative/neutral")
-    confidence: float = Field(description="置信度 0-1")
-    keywords: list[str] = Field(description="关键词列表")
-
-
-class CodeIssue(BaseModel):
-    """代码问题。"""
-
-    severity: str = Field(description="严重程度: critical/major/minor/info")
-    line: int | None = Field(default=None, description="行号")
-    description: str = Field(description="问题描述")
-    suggestion: str | None = Field(default=None, description="修复建议")
-
-
-class CodeReviewOutput(BaseModel):
-    """代码审查输出模型。"""
-
-    score: int = Field(description="代码评分 0-10", ge=0, le=10)
-    issues: list[CodeIssue] = Field(default_factory=list, description="问题列表")
-    overall: str = Field(description="总体评价")
 
 
 async def demo_agent_sentiment() -> None:
@@ -228,11 +207,6 @@ async def demo_agent_quick_query() -> None:
         return
 
     print_header("Agent SDK — 快捷结构化查询")
-
-    class SummaryOutput(BaseModel):
-        title: str = Field(description="标题")
-        points: list[str] = Field(description="要点列表")
-        word_count: int = Field(description="原文字数估计")
 
     console.print("[cyan]使用 structured_query() 一行调用[/cyan]\n")
     config = AgentConfig.from_yaml().model_copy(update={"max_turns": 1})

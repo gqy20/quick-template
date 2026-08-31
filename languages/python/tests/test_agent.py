@@ -204,10 +204,7 @@ class TestPromptRegistry:
             "id: review\n"
             "version: 1.2.0\n"
             "description: Review code\n"
-            "system:\n"
-            "  type: preset\n"
-            "  preset: claude_code\n"
-            "  append: Review carefully.\n"
+            "instructions: Review carefully.\n"
             "user_template: |\n"
             "  Review $language code:\n"
             "  $code\n"
@@ -224,11 +221,16 @@ class TestPromptRegistry:
 
         assert prompt.id == "review"
         assert prompt.version == "1.2.0"
-        assert prompt.system_prompt["preset"] == "claude_code"
+        assert prompt.instructions == "Review carefully."
         assert "Python" in prompt.text
         assert "print('ok')" in prompt.text
         assert prompt.sensitive_variables == frozenset({"code"})
         assert len(prompt.definition_sha256) == 64
+
+        from {{ package_name }}.agent import claude_system_prompt
+
+        claude_prompt = claude_system_prompt(prompt.instructions)
+        assert claude_prompt["append"] == prompt.instructions
 
     def test_rejects_missing_or_unknown_variables(self, tmp_path):
         from {{ package_name }}.prompt import PromptRegistry
@@ -239,6 +241,7 @@ class TestPromptRegistry:
             "id: simple\n"
             "version: 1.0.0\n"
             "description: Simple prompt\n"
+            "instructions: Be concise.\n"
             "user_template: 'Hello $name'\n"
             "variables:\n"
             "  name: {required: true}\n"

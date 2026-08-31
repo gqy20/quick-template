@@ -863,7 +863,11 @@ def _load_demo_prompt(name: str, **values: str) -> tuple[Any, str]:
     """加载 examples/prompts 中的演示 Prompt。"""
     path = Path(__file__).parent / "prompts" / f"{name}.yaml"
     data = yaml.safe_load(path.read_text(encoding="utf-8"))
-    system = data["system"]
+    system = {
+        "type": "preset",
+        "preset": "claude_code",
+        "append": data["instructions"],
+    }
     prompt = Template(data["user_template"]).substitute(values)
     return system, prompt
 

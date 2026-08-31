@@ -101,8 +101,14 @@ def test_python_agent_uses_native_mcp_skills_and_logging_config(tmp_path):
     assert config["runtime_state"]["mode"] == "ephemeral"
     assert mcp == {"mcpServers": {}}
     assert "claude-agent-sdk==0.2.148" in pyproject
+    assert "langgraph==1.2.11" in pyproject
+    assert "langchain-anthropic==1.7.0" in pyproject
     assert (output / "src" / "test_project" / "agent_log.py").is_file()
     assert (output / ".claude" / "skills" / "README.md").is_file()
     assert (output / "config" / "prompts" / "default.yaml").is_file()
     assert (output / "src" / "test_project" / "prompt.py").is_file()
     assert (output / "src" / "test_project" / "agent_state.py").is_file()
+    assert (output / "src" / "test_project" / "agent_models.py").is_file()
+    assert (output / "src" / "test_project" / "langgraph_agent.py").is_file()
+    assert (output / "config" / "runtimes" / "langgraph.yaml").is_file()
+    assert (output / "examples" / "langgraph_review.py").is_file()

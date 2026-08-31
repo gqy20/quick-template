@@ -1,4 +1,4 @@
-"""Claude Agent SDK 的结构化运行日志。
+"""跨 Agent Runtime 的结构化运行日志。
 
 默认只记录元数据，不记录 prompt、模型正文、工具输入值或工具结果正文。
 """
@@ -56,10 +56,12 @@ class AgentEventLogger:
         run_id: str | None = None,
         max_bytes: int = 10 * 1024 * 1024,
         backup_count: int = 5,
+        runtime: str = "claude-agent-sdk",
     ) -> None:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.run_id = run_id or str(uuid4())
+        self.runtime = runtime
         self.session_id: str | None = None
         self._tool_started: dict[str, float] = {}
         self._logger = self._create_logger(level, max_bytes, backup_count)
@@ -89,11 +91,19 @@ class AgentEventLogger:
         """写入结构化事件。"""
         payload = {
             "event": event,
+            "runtime": self.runtime,
             "run_id": self.run_id,
             "session_id": self.session_id,
             **fields,
         }
         self._logger.log(level, event, extra={"agent_fields": payload})
+
+    def start_run(self, run_id: str | None = None) -> str:
+        """为可复用 Runtime 创建新的日志关联 ID。"""
+        self.run_id = run_id or str(uuid4())
+        self.session_id = None
+        self._tool_started.clear()
+        return self.run_id
 
     def run_started(
         self,

@@ -37,6 +37,10 @@ dependencies = [
 
 [project.optional-dependencies]
 agent = ["claude-agent-sdk==0.2.148"]
+agent-langgraph = [
+    "langgraph==1.2.11",
+    "langchain-anthropic==1.7.0",
+]
 
 [project.urls]
 Homepage = "{{ repository_provider }}/{{ repository_username }}/{{ project_slug }}"
