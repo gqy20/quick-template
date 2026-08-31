@@ -30,7 +30,7 @@ jobs:
           SMOKE_ENV="$RUNNER_TEMP/quick-template-smoke"
           uv venv "$SMOKE_ENV"
           uv pip install --python "$SMOKE_ENV/bin/python" dist/*.whl
-          "$SMOKE_ENV/bin/quick-template" +            --language typescript +            --no-add-api +            --output-dir "$RUNNER_TEMP/generated-project"
+          "$SMOKE_ENV/bin/quick-template" --language typescript --no-add-api --output-dir "$RUNNER_TEMP/generated-project"
           test -f "$RUNNER_TEMP/generated-project/package.json"
           test -f "$RUNNER_TEMP/generated-project/AGENTS.md"
 
@@ -83,7 +83,7 @@ jobs:
           OUTPUT=$(uv run test_template.py "${{ matrix.language }}" "${{ matrix.with-api }}")
           echo "$OUTPUT"
           DST_DIR=$(echo "$OUTPUT" | grep "^OK:" | cut -d: -f2-)
-          echo "dst_dir=$DST_DIR" >> $GITHUB_OUTPUT
+          echo "dst_dir=$DST_DIR" >> "$GITHUB_OUTPUT"
 
       - name: 验证生成的项目结构
         run: |
@@ -95,32 +95,32 @@ jobs:
       - name: 验证 Python 关键文件
         if: matrix.language == 'python'
         run: |
-          D=${{ steps.generate.outputs.dst_dir }}
-          test -f $D/pyproject.toml && echo "pyproject.toml OK" || (echo "pyproject.toml MISSING" && exit 1)
-          test -d $D/src && echo "src/ OK" || (echo "src/ MISSING" && exit 1)
-          test -d $D/tests && echo "tests/ OK" || (echo "tests/ MISSING" && exit 1)
+          D="${{ steps.generate.outputs.dst_dir }}"
+          test -f "$D/pyproject.toml"
+          test -d "$D/src"
+          test -d "$D/tests"
 
       - name: 验证 Go 关键文件
         if: matrix.language == 'golang'
         run: |
-          D=${{ steps.generate.outputs.dst_dir }}
-          test -f $D/go.mod && echo "go.mod OK" || (echo "go.mod MISSING" && exit 1)
-          test -d $D/cmd && echo "cmd/ OK" || (echo "cmd/ MISSING" && exit 1)
-          test -d $D/internal && echo "internal/ OK" || (echo "internal/MISSING" && exit 1)
+          D="${{ steps.generate.outputs.dst_dir }}"
+          test -f "$D/go.mod"
+          test -d "$D/cmd"
+          test -d "$D/internal"
 
       - name: 验证 TypeScript 关键文件
         if: matrix.language == 'typescript'
         run: |
-          D=${{ steps.generate.outputs.dst_dir }}
-          test -f $D/package.json && echo "package.json OK" || (echo "package.json MISSING" && exit 1)
-          test -f $D/tsconfig.json && echo "tsconfig.json OK" || (echo "tsconfig.json MISSING" && exit 1)
-          test -d $D/src && echo "src/ OK" || (echo "src/ MISSING" && exit 1)
+          D="${{ steps.generate.outputs.dst_dir }}"
+          test -f "$D/package.json"
+          test -f "$D/tsconfig.json"
+          test -d "$D/src"
 
       - name: 验证公共文件
         run: |
-          D=${{ steps.generate.outputs.dst_dir }}
-          test -f $D/Makefile && echo "Makefile OK" || (echo "Makefile MISSING" && exit 1)
-          test -f $D/README.md && echo "README.md OK" || (echo "README.md MISSING" && exit 1)
+          D="${{ steps.generate.outputs.dst_dir }}"
+          test -f "$D/Makefile"
+          test -f "$D/README.md"
 
       # ========== Python 完整检查 ==========
       - name: Python — 安装依赖
@@ -140,14 +140,14 @@ jobs:
         if: matrix.language == 'python'
         working-directory: ${{ steps.generate.outputs.dst_dir }}
         run: |
-          PKG=$(ls src/ | head -1)
+          PKG=$(find src -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | head -1)
           uv run mypy "src/$PKG"
 
       - name: Python — 运行测试
         if: matrix.language == 'python'
         working-directory: ${{ steps.generate.outputs.dst_dir }}
         run: |
-          PKG=$(ls src/ | head -1)
+          PKG=$(find src -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | head -1)
           uv run pytest --cov="src/$PKG" --cov-report=term-missing -v
 
       # ========== Go 完整检查 ==========
