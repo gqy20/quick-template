@@ -1,5 +1,16 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- 将生成项目的 `AGENTS.md` 扩展为授权、安全、验证和完成标准的执行契约。
+- 新增语义 Token、响应式、无障碍和 Design QA 驱动的 `DESIGN.md`。
+
+### Changed
+
+- `CLAUDE.md` 改为指向 `AGENTS.md` 与 `DESIGN.md`，避免重复规则漂移。
+
 ## [0.3.0] - 2026-08-31
 
 ### Changed

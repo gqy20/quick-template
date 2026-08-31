@@ -11,7 +11,7 @@
 | TypeScript | Node.js 24+ | npm | Biome | Vitest | Hono |
 
 生成结果统一提供 `make install/check/format/typecheck/test/run`，并包含 GitHub
-Actions、Dependabot、项目文档和 Agent 开发指令。
+Actions、Dependabot、Agent 执行契约和前端设计契约。
 
 ## 安装
 
@@ -79,6 +79,9 @@ shared/             # README、CI、Makefile 等公共模板
 tests/              # 生成器单元测试
 docs/               # GitHub Pages
 ```
+
+生成项目中的 `AGENTS.md` 约束 Agent 的授权、范围、安全、验证和完成标准；
+`DESIGN.md` 约束语义 Token、布局、组件、响应式、无障碍和 Design QA。
 
 `languages/` 与 `shared/` 是唯一模板源。模板支持变量替换以及
 `{{#if ...}}` / `{{#elif ...}}` / `{{#else}}` 条件块。

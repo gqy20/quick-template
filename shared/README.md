@@ -120,6 +120,8 @@ make test
 {{#endif}}
 ├── docs/
 ├── Makefile
+├── AGENTS.md
+├── DESIGN.md
 └── README.md
 ```
 

@@ -1,0 +1,85 @@
+"""生成项目治理文档的验收测试。"""
+
+from pathlib import Path
+
+import pytest
+import yaml
+
+from scaffold.files import copy_template_dir
+from scaffold.variables import ProjectVars
+
+TEMPLATE_ROOT = Path(__file__).resolve().parents[1]
+
+
+def generate_template(tmp_path, language, add_api):
+    output = tmp_path / f"{language}-{add_api}"
+    variables = ProjectVars.build(
+        None,
+        language,
+        add_api,
+        {
+            "project_name": "Test Project",
+            "author_name": "Test Author",
+            "repository_username": "test-author",
+        },
+    ).to_dict()
+    copy_template_dir(TEMPLATE_ROOT / "shared", output, variables)
+    copy_template_dir(TEMPLATE_ROOT / "languages" / language, output, variables)
+    return output
+
+
+@pytest.mark.parametrize(
+    ("language", "add_api"),
+    [
+        ("python", True),
+        ("python", False),
+        ("golang", True),
+        ("golang", False),
+        ("typescript", True),
+        ("typescript", False),
+    ],
+)
+def test_generated_agent_contract_is_complete(tmp_path, language, add_api):
+    output = generate_template(tmp_path, language, add_api)
+    content = (output / "AGENTS.md").read_text()
+
+    assert f"语言：{language}" in content
+    assert "## 指令优先级" in content
+    assert "## 按请求类型确定授权" in content
+    assert "## 事实源与文档路由" in content
+    assert "## 工作区与 Git 安全" in content
+    assert "## 验证阶梯" in content
+    assert "## Code Review Rules" in content
+    assert "## 完成标准" in content
+    assert ("API：启用" if add_api else "API：未启用") in content
+    assert "{{#" not in content
+    assert len(content.encode()) < 24 * 1024
+
+
+def test_generated_design_contract_has_semantic_sections(tmp_path):
+    output = generate_template(tmp_path, "typescript", True)
+    content = (output / "DESIGN.md").read_text()
+
+    assert "# Design System: Test Project" in content
+    assert "## 1. 设计北极星" in content
+    assert "## 2. 语义 Token" in content
+    assert "## 6. 响应式与无障碍" in content
+    assert "## 9. 禁止模式" in content
+    assert "## 10. Design QA" in content
+    assert "prefers-reduced-motion" in content
+    assert "{{#" not in content
+
+    frontmatter = content.split("---", 2)[1]
+    metadata = yaml.safe_load(frontmatter)
+    assert metadata["status"] == "baseline"
+    assert metadata["colors"]["accent"] == "#B04A5A"
+
+
+def test_generated_claude_instructions_route_to_canonical_contracts(tmp_path):
+    output = generate_template(tmp_path, "python", False)
+    content = (output / ".claude" / "CLAUDE.md").read_text()
+
+    assert "AGENTS.md" in content
+    assert "DESIGN.md" in content
+    assert "唯一事实源" in content
+    assert "## 常用命令" not in content
