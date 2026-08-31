@@ -29,13 +29,14 @@ classifiers = [
 dependencies = [
     "rich>=13.0.0",
     "pydantic>=2.10.0",
+    "pyyaml>=6.0.0",
 {{#if add_api}}    "fastapi>=0.100.0",
     "uvicorn[standard]>=0.23.0",
 {{#endif}}
 ]
 
 [project.optional-dependencies]
-agent = ["claude-agent-sdk>=0.2.0"]
+agent = ["claude-agent-sdk==0.2.148"]
 
 [project.urls]
 Homepage = "{{ repository_provider }}/{{ repository_username }}/{{ project_slug }}"

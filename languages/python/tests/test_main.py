@@ -54,3 +54,10 @@ def test_main_handles_exceptions():
         mock_demo.side_effect = RuntimeError("测试错误")
         with pytest.raises(RuntimeError):
             main()
+
+
+def test_main_does_not_run_agent_demo_by_default():
+    """安装 Agent extra 后，普通启动仍保持离线。"""
+    with patch("{{package_name }}.main.run_agent_demos") as mock_agent_demo:
+        main()
+    mock_agent_demo.assert_not_called()

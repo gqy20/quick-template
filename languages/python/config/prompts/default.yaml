@@ -1,0 +1,17 @@
+id: default
+version: 1.0.0
+description: 通用结构化任务
+tags: [default]
+system:
+  type: preset
+  preset: claude_code
+  append: |
+    优先返回符合 output_format 的结构化结果。
+    不得编造缺失信息；无法确定时在结果中明确表达不确定性。
+user_template: |
+  $task
+variables:
+  task:
+    required: true
+    sensitive: true
+    description: 用户任务正文

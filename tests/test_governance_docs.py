@@ -1,5 +1,6 @@
 """生成项目治理文档的验收测试。"""
 
+import json
 from pathlib import Path
 
 import pytest
@@ -83,3 +84,25 @@ def test_generated_claude_instructions_route_to_canonical_contracts(tmp_path):
     assert "DESIGN.md" in content
     assert "唯一事实源" in content
     assert "## 常用命令" not in content
+
+
+def test_python_agent_uses_native_mcp_skills_and_logging_config(tmp_path):
+    output = generate_template(tmp_path, "python", False)
+
+    config = yaml.safe_load((output / "config" / "agent.yaml").read_text())
+    mcp = json.loads((output / ".mcp.json").read_text())
+    pyproject = (output / "pyproject.toml").read_text()
+
+    assert config["mcp_config"] == ".mcp.json"
+    assert config["strict_mcp_config"] is True
+    assert config["skills"] == []
+    assert config["setting_sources"] == ["project"]
+    assert config["logging"]["jsonl_path"] == "logs/agent/events.jsonl"
+    assert config["runtime_state"]["mode"] == "ephemeral"
+    assert mcp == {"mcpServers": {}}
+    assert "claude-agent-sdk==0.2.148" in pyproject
+    assert (output / "src" / "test_project" / "agent_log.py").is_file()
+    assert (output / ".claude" / "skills" / "README.md").is_file()
+    assert (output / "config" / "prompts" / "default.yaml").is_file()
+    assert (output / "src" / "test_project" / "prompt.py").is_file()
+    assert (output / "src" / "test_project" / "agent_state.py").is_file()

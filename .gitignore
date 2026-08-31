@@ -34,5 +34,8 @@ __pycache__/
 *.sqlite
 *.sqlite3
 
+# Claude Agent SDK 本地 transcript / runtime state
+.agent-state/
+
 # 模板测试输出
 /tmp/test-*/

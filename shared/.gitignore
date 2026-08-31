@@ -37,6 +37,7 @@ coverage.xml
 .mypy_cache/
 .ruff_cache/
 logs/
+.agent-state/
 
 {{#elif language == 'golang'}}
 # Go

@@ -16,7 +16,7 @@
     python claude_agent.py                  # 演示（正常模式）
     python claude_agent.py --debug          # 演示（DEBUG 日志）
 
-依赖: pydantic>=2.0, claude-agent-sdk>=0.1.71, opentelemetry-sdk>=1.41, rich
+依赖: pydantic>=2.0, claude-agent-sdk==0.2.148, rich
 """
 
 from __future__ import annotations
@@ -25,16 +25,19 @@ import argparse
 import asyncio
 import logging
 import time
+from contextlib import suppress
 from dataclasses import dataclass, field
 from pathlib import Path
+from string import Template
 from typing import Any, Literal, TypeVar
 
+import yaml
 from pydantic import BaseModel, Field, ValidationError
+from rich import box
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
-from rich import box
 
 console = Console()
 
@@ -56,6 +59,15 @@ __all__ = [
 logger = logging.getLogger("claude_agent")
 
 T = TypeVar("T", bound=BaseModel)
+
+
+def _isolated_agent_env() -> dict[str, str]:
+    """让独立示例不写入用户全局 ~/.claude。"""
+    state_dir = Path.cwd() / ".agent-state" / "claude"
+    return {
+        "CLAUDE_CONFIG_DIR": str(state_dir.resolve()),
+        "CLAUDE_AGENT_SDK_CLIENT_APP": "quick-template-example/0.3.0",
+    }
 
 
 # ============================================================================
@@ -147,10 +159,14 @@ class AgentConfig(BaseModel):
     effort: Literal["low", "medium", "high", "max"] | None = None
     thinking: dict[str, Any] | None = Field(
         default=None,
-        description='{"type":"adaptive"} | {"type":"enabled","budget_tokens":N} | {"type":"disabled"}',
+        description="adaptive | enabled(budget_tokens) | disabled",
     )
-    betas: list[str] = Field(default_factory=list, description="Beta 功能，如 context-1m-2025-08-07")
-    user: str | None = Field(default=None, description="系统用户名（传给子进程 Popen），非自定义标识")
+    betas: list[str] = Field(
+        default_factory=list, description="Beta 功能，如 context-1m-2025-08-07"
+    )
+    user: str | None = Field(
+        default=None, description="系统用户名（传给子进程 Popen），非自定义标识"
+    )
 
     # ── 提示词 ────────────────────────────────────
     system_prompt: str | dict[str, Any] | None = Field(
@@ -166,9 +182,9 @@ class AgentConfig(BaseModel):
     add_dirs: list[str] = Field(default_factory=list, description="额外可访问目录（绝对路径）")
 
     # ── 权限 & 安全 ───────────────────────────────
-    permission_mode: Literal[
-        "default", "acceptEdits", "plan", "bypassPermissions", "dontAsk", "auto"
-    ] | None = None
+    permission_mode: (
+        Literal["default", "acceptEdits", "plan", "bypassPermissions", "dontAsk", "auto"] | None
+    ) = None
     max_turns: int | None = None
     max_budget_usd: float | None = None
 
@@ -183,16 +199,18 @@ class AgentConfig(BaseModel):
     plugins: list[dict[str, Any]] = Field(default_factory=list, description="插件配置列表")
 
     # ── 环境 & CLI ─────────────────────────────────
-    env: dict[str, str] = Field(default_factory=dict)
+    env: dict[str, str] = Field(default_factory=_isolated_agent_env)
     cli_path: str | Path | None = Field(default=None)
     extra_args: dict[str, str | None] = Field(
-        default_factory=dict, description="直传 CLI 的额外参数（无 -- 前缀）",
+        default_factory=dict,
+        description="直传 CLI 的额外参数（无 -- 前缀）",
     )
     settings: str | None = Field(default=None, description="额外 settings JSON 文件路径")
 
     # ── 高级选项 ─────────────────────────────────
     include_partial_messages: bool = Field(
-        default=False, description="包含流式部分消息（SDKPartialAssistantMessage）",
+        default=False,
+        description="包含流式部分消息（SDKPartialAssistantMessage）",
     )
     setting_sources: list[Literal["user", "project", "local"]] | None = Field(
         default=None,
@@ -208,7 +226,8 @@ class AgentConfig(BaseModel):
         system_val = kwargs.pop("system_prompt", None)
 
         sdk_fields = {
-            f.name for f in __import__("dataclasses").fields(ClaudeAgentOptions)
+            f.name
+            for f in __import__("dataclasses").fields(ClaudeAgentOptions)
             if hasattr(ClaudeAgentOptions, f.name)
         }
         filtered = {k: v for k, v in kwargs.items() if k in sdk_fields}
@@ -281,7 +300,7 @@ def parse_with_model(message: object, model_class: type[T]) -> T | None:
 
 def _extract_raw_dict(message: object) -> dict[str, Any] | None:
     if hasattr(message, "structured_output"):
-        output = getattr(message, "structured_output")
+        output = message.structured_output
         if isinstance(output, dict):
             return output
     if hasattr(message, "content"):
@@ -313,8 +332,8 @@ class QueryStats:
     num_turns: int = 0
     model: str = ""
     max_turns: int = 0
-    session_id: str = ""          # 实际 session ID
-    stop_reason: str = ""          # 结束原因
+    session_id: str = ""  # 实际 session ID
+    stop_reason: str = ""  # 结束原因
 
 
 # ============================================================================
@@ -369,10 +388,10 @@ class Agent:
                     if got_structured:
                         break
 
-        except ImportError:
+        except ImportError as error:
             raise AgentConnectionError(
-                "claude-agent-sdk 未安装: pip install 'claude-agent-sdk>=0.1.71'"
-            )
+                "claude-agent-sdk 未安装: pip install 'claude-agent-sdk==0.2.148'"
+            ) from error
         except AgentError:
             raise
         except Exception as exc:
@@ -414,11 +433,8 @@ class Agent:
                 ResultMessage,
                 StreamEvent,
                 SystemMessage,
-                TaskStartedMessage,
                 TaskNotificationMessage,
-                TextBlock,
-                ThinkingBlock,
-                ToolUseBlock,
+                TaskStartedMessage,
                 UserMessage,
             )
         except ImportError:
@@ -435,7 +451,9 @@ class Agent:
                 self._stats.model = model
             blocks = getattr(message, "content", [])
             block_names = [type(b).__name__.replace("Block", "") for b in blocks]
-            console.print(f"  [dim][{turn}/{self._stats.max_turns or '?'}][/dim]  {' + '.join(block_names)}")
+            console.print(
+                f"  [dim][{turn}/{self._stats.max_turns or '?'}][/dim]  {' + '.join(block_names)}"
+            )
             self._log_assistant_message(message)
         elif isinstance(message, ResultMessage):
             self._log_result_message(message)
@@ -455,7 +473,6 @@ class Agent:
     def _log_stream_event(self, message: object) -> None:
         event = message.event
         etype = event.get("type", "?")
-        safe = {k: v for k, v in event.items() if k not in ("delta", "content")}
         logger.debug("StreamEvent[%s]", etype)
 
         if etype == "content_block_delta":
@@ -495,14 +512,21 @@ class Agent:
 
         logger.debug(
             "Assistant | model=%s stop=%s blocks=%s",
-            message.model, message.stop_reason, block_counts,
+            message.model,
+            message.stop_reason,
+            block_counts,
         )
 
     def _aggregate_tokens(self, usage: dict[str, Any]) -> None:
         """累加 token 用量到 stats。"""
         if self._stats.token_usage is None:
             self._stats.token_usage = {}
-        for key in ("input_tokens", "output_tokens", "cache_creation_input_tokens", "cache_read_input_tokens"):
+        for key in (
+            "input_tokens",
+            "output_tokens",
+            "cache_creation_input_tokens",
+            "cache_read_input_tokens",
+        ):
             val = usage.get(key)
             if val is not None and isinstance(val, (int, float)):
                 prev = self._stats.token_usage.get(key, 0)
@@ -568,20 +592,24 @@ class Agent:
         if info.status == "rejected":
             raise AgentRateLimitError(
                 f"限流拒绝: {info.rate_limit_type}",
-                status=info.status, resets_at=info.resets_at,
+                status=info.status,
+                resets_at=info.resets_at,
                 utilization=info.utilization,
             )
 
     def _track_task_start(self, message: object) -> None:
-        self._stats.tasks.append({
-            "task_id": getattr(message, "task_id", "?"),
-            "description": getattr(message, "description", ""),
-            "status": "started",
-            "task_type": getattr(message, "task_type", None),
-        })
+        self._stats.tasks.append(
+            {
+                "task_id": getattr(message, "task_id", "?"),
+                "description": getattr(message, "description", ""),
+                "status": "started",
+                "task_type": getattr(message, "task_type", None),
+            }
+        )
         logger.debug(
             "TaskStart | id=%s | %s",
-            message.task_id, message.description,
+            message.task_id,
+            message.description,
         )
 
     def _track_task_end(self, message: object) -> None:
@@ -594,11 +622,13 @@ class Agent:
                 updated = True
                 break
         if not updated:
-            self._stats.tasks.append({
-                "task_id": task_id,
-                "status": getattr(message, "status", "?"),
-                "summary": getattr(message, "summary", ""),
-            })
+            self._stats.tasks.append(
+                {
+                    "task_id": task_id,
+                    "status": getattr(message, "status", "?"),
+                    "summary": getattr(message, "summary", ""),
+                }
+            )
         logger.debug("TaskEnd | id=%s | status=%s", task_id, getattr(message, "status", "?"))
 
     @staticmethod
@@ -607,14 +637,22 @@ class Agent:
 
     def _translate_exception(self, exc: BaseException) -> None:
         from claude_agent_sdk import (
-            CLIConnectionError, CLINotFoundError, ProcessError, CLIJSONDecodeError,
+            CLIConnectionError,
+            CLIJSONDecodeError,
+            CLINotFoundError,
+            ProcessError,
         )
+
         if isinstance(exc, CLINotFoundError):
             raise AgentConnectionError(f"Claude Code CLI 未找到: {exc}") from exc
         if isinstance(exc, CLIConnectionError):
             raise AgentConnectionError(f"无法连接 Claude Code: {exc}") from exc
         if isinstance(exc, ProcessError):
-            raise AgentProcessError(str(exc), exit_code=getattr(exc, "exit_code", None), stderr=getattr(exc, "stderr", None)) from exc
+            raise AgentProcessError(
+                str(exc),
+                exit_code=getattr(exc, "exit_code", None),
+                stderr=getattr(exc, "stderr", None),
+            ) from exc
         if isinstance(exc, CLIJSONDecodeError):
             raise AgentProcessError(f"协议解析错误: {exc}") from exc
         raise AgentError(f"SDK 错误: {exc}") from exc
@@ -627,14 +665,17 @@ class Agent:
             stop = getattr(rm, "stop_reason", None)
             if stop in ("max_turns_reached", "error_max_budget_usd"):
                 raise AgentBudgetExceededError(
-                    f"查询终止: {stop} (turns={getattr(rm, 'num_turns', '?')}, cost=${getattr(rm, 'total_cost_usd', '?')})",
+                    "查询终止: "
+                    f"{stop} (turns={getattr(rm, 'num_turns', '?')}, "
+                    f"cost=${getattr(rm, 'total_cost_usd', '?')})",
                     actual_turns=getattr(rm, "num_turns", 0) or 0,
                     actual_cost_usd=getattr(rm, "total_cost_usd", None),
                 )
         raw = _extract_raw_dict(rm) if rm else None
         raise AgentValidationError(
             f"无结构化输出 ({count} 条消息, {elapsed:.1f}s) | model={output_model.__name__}",
-            raw_data=raw, model_class=output_model,
+            raw_data=raw,
+            model_class=output_model,
         )
 
     def _get_cost(self) -> float | None:
@@ -646,10 +687,8 @@ class Agent:
 async def _aclose_silent(aiter) -> None:
     """安全关闭异步生成器，忽略已关闭/未实现 aclose 的情况。"""
     if hasattr(aiter, "aclose"):
-        try:
+        with suppress(RuntimeError, AttributeError, StopAsyncIteration):
             await aiter.aclose()
-        except (RuntimeError, AttributeError, StopAsyncIteration):
-            pass
 
 
 # ============================================================================
@@ -669,7 +708,9 @@ async def ask(
     """一行完成结构化查询。"""
     config_fields = set(AgentConfig.model_fields.keys())
     filtered = {k: v for k, v in kwargs.items() if k in config_fields}
-    agent = Agent(AgentConfig(model=model, system_prompt=system_prompt, max_turns=max_turns, **filtered))
+    agent = Agent(
+        AgentConfig(model=model, system_prompt=system_prompt, max_turns=max_turns, **filtered)
+    )
     return await agent.ask(prompt, output_model)
 
 
@@ -788,7 +829,9 @@ def _print_stats(agent: Agent) -> None:
     if s.model:
         lines.append(f"  model   [cyan]{s.model}[/]")
     if s.total_cost_usd is not None:
-        lines.append(f"  cost    [green]${s.total_cost_usd:.4f}[/]   {s.duration_sec:.1f}s   {s.num_turns}轮")
+        lines.append(
+            f"  cost    [green]${s.total_cost_usd:.4f}[/]   {s.duration_sec:.1f}s   {s.num_turns}轮"
+        )
 
     # Token
     if s.token_usage:
@@ -816,6 +859,15 @@ def _print_stats(agent: Agent) -> None:
         console.print("\n".join(lines))
 
 
+def _load_demo_prompt(name: str, **values: str) -> tuple[Any, str]:
+    """加载 examples/prompts 中的演示 Prompt。"""
+    path = Path(__file__).parent / "prompts" / f"{name}.yaml"
+    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    system = data["system"]
+    prompt = Template(data["user_template"]).substitute(values)
+    return system, prompt
+
+
 async def demo() -> None:
     _print_header("Claude Agent SDK — 结构化输出演示")
     code = """\
@@ -828,16 +880,24 @@ def process(data):
         results.append(calc(i, i*2))
     return results"""
 
+    system_prompt, prompt = _load_demo_prompt(
+        "code-review",
+        language="Python",
+        code=code,
+    )
+
     # 展示完整配置能力
-    agent = Agent(AgentConfig(
-        system_prompt="你是资深代码审查专家，从可读性、性能、规范三个维度审查。",
-        max_turns=2,
-        effort="medium",
-        # 以下是新增集成的原生能力示例：
-        setting_sources=["project"],          # 只加载项目设置（隔离模式）
-        disallowed_tools=["WebFetch"],         # 禁用不需要的工具
-    ))
-    result = await agent.ask(f"审查以下 Python 代码:\n\n{code}", CodeReviewOutput)
+    agent = Agent(
+        AgentConfig(
+            system_prompt=system_prompt,
+            max_turns=2,
+            effort="medium",
+            # 以下是新增集成的原生能力示例：
+            setting_sources=["project"],  # 只加载项目设置（隔离模式）
+            disallowed_tools=["WebFetch"],  # 禁用不需要的工具
+        )
+    )
+    result = await agent.ask(prompt, CodeReviewOutput)
 
     console.print()
     score_color = "green" if result.score >= 7 else "yellow" if result.score >= 4 else "red"
@@ -865,13 +925,17 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.debug:
-        logging.basicConfig(level=logging.DEBUG,
-                           format="%(asctime)s [%(levelname)s] %(message)s",
-                           datefmt="%H:%M:%S")
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format="%(asctime)s [%(levelname)s] %(message)s",
+            datefmt="%H:%M:%S",
+        )
     else:
-        logging.basicConfig(level=logging.WARNING,
-                           format="%(asctime)s [%(levelname)s] %(message)s",
-                           datefmt="%H:%M:%S")
+        logging.basicConfig(
+            level=logging.WARNING,
+            format="%(asctime)s [%(levelname)s] %(message)s",
+            datefmt="%H:%M:%S",
+        )
 
     for name in ("claude_agent_sdk", "claude_agent_sdk._internal"):
         logging.getLogger(name).setLevel(logging.ERROR)

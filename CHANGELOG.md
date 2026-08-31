@@ -6,10 +6,13 @@
 
 - 将生成项目的 `AGENTS.md` 扩展为授权、安全、验证和完成标准的执行契约。
 - 新增语义 Token、响应式、无障碍和 Design QA 驱动的 `DESIGN.md`。
+- 新增 Claude Agent SDK 的结构化 JSONL 日志、MCP、Skills 与项目配置。
+- 新增版本化 YAML Prompt Registry 和 ephemeral/project/default Session 状态隔离。
 
 ### Changed
 
 - `CLAUDE.md` 改为指向 `AGENTS.md` 与 `DESIGN.md`，避免重复规则漂移。
+- Claude Agent SDK 升级并固定到 `0.2.148`，普通应用启动不再自动调用模型。
 
 ## [0.3.0] - 2026-08-31
 

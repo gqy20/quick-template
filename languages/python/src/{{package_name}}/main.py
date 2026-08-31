@@ -13,11 +13,13 @@ from {{package_name}}.logger import console, logger, print_header, print_success
 # Agent SDK 模块可选导入
 if find_spec("claude_agent_sdk") is not None:
     from {{package_name}}.agent import (
+        AgentConfig,
         AgentRunner,
         code_review_schema,
         output_format_schema,
         structured_query,
     )
+    from {{package_name}}.prompt import PromptRegistry
 
     HAS_AGENT_SDK = True
 else:
@@ -124,19 +126,21 @@ async def demo_agent_sentiment() -> None:
     schema = output_format_schema(SentimentOutput)
     console.print(f"[dim]Schema: {schema['name']}[/dim]\n")
 
+    config = AgentConfig.from_yaml().model_copy(update={"max_turns": 1})
+    prompts = PromptRegistry(config.resolve_path(config.prompt_dir))
     runner = AgentRunner(
         schema=schema,
-        system_prompt="你是一个专业的情感分析专家。分析给定文本的情感倾向。",
-        max_turns=1,
+        config=config,
     )
 
     console.print(
         "[cyan]查询: 分析「这个产品太棒了！物流很快，客服也很耐心。」[/cyan]\n"
     )
-    result = await runner.run(
-        "分析以下文本的情感倾向：这个产品太棒了！物流很快，客服也很耐心。",
-        SentimentOutput,
+    prompt = prompts.render(
+        "sentiment",
+        text="这个产品太棒了！物流很快，客服也很耐心。",
     )
+    result = await runner.run(prompt, SentimentOutput)
 
     if result:
         console.print("\n[bold green]=== 结构化输出结果 ===[/bold green]")
@@ -174,17 +178,20 @@ def process(data):
     schema = code_review_schema()
     console.print(f"[dim]Schema: {schema['name']}[/dim]\n")
 
+    config = AgentConfig.from_yaml().model_copy(update={"max_turns": 2})
+    prompts = PromptRegistry(config.resolve_path(config.prompt_dir))
     runner = AgentRunner(
         schema=schema,
-        system_prompt="你是一个资深代码审查专家。从可读性、性能、规范三个维度审查代码。",
-        max_turns=2,
+        config=config,
     )
 
     console.print("[cyan]正在审查代码...[/cyan]\n")
-    result = await runner.run(
-        f"请审查以下 Python 代码的质量，给出评分和具体问题：\n\n{sample_code}",
-        CodeReviewOutput,
+    prompt = prompts.render(
+        "code-review",
+        language="Python",
+        code=sample_code,
     )
+    result = await runner.run(prompt, CodeReviewOutput)
 
     if result:
         console.print("\n[bold green]=== 审查结果 ===[/bold green]")
@@ -228,11 +235,16 @@ async def demo_agent_quick_query() -> None:
         word_count: int = Field(description="原文字数估计")
 
     console.print("[cyan]使用 structured_query() 一行调用[/cyan]\n")
+    config = AgentConfig.from_yaml().model_copy(update={"max_turns": 1})
+    prompts = PromptRegistry(config.resolve_path(config.prompt_dir))
+    prompt = prompts.render(
+        "summary",
+        task="用一句话总结 Python 的特点，并列出 3 个核心优势",
+    )
     result = await structured_query(
-        "用一句话总结 Python 的特点，并列出 3 个核心优势",
+        prompt,
         SummaryOutput,
-        system_prompt="你是一个技术文档撰写专家。",
-        max_turns=1,
+        config=config,
     )
 
     if result:
@@ -265,8 +277,8 @@ async def run_agent_demos() -> None:
     await demo_agent_quick_query()
 
 
-def main() -> None:
-    """运行主程序"""
+def main(run_agent_demo: bool = False) -> None:
+    """运行主程序；真实 Agent Demo 必须显式启用。"""
     console.print(
         Panel.fit(
             "[bold cyan]{{project_name }}[/bold cyan] - {{description }}",
@@ -285,7 +297,7 @@ def main() -> None:
         demo_logging()
 
         # 异步 Agent SDK 演示
-        if HAS_AGENT_SDK:
+        if run_agent_demo:
             console.print()
             asyncio.run(run_agent_demos())
 
@@ -298,4 +310,12 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--agent-demo",
+        action="store_true",
+        help="运行会调用真实 Claude 的 Agent SDK 演示",
+    )
+    main(run_agent_demo=parser.parse_args().agent_demo)

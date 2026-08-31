@@ -1,0 +1,44 @@
+# Claude Agent SDK 运行配置。Prompt 文本独立维护在 config/prompts/。
+model: null
+fallback_model: null
+
+# tools 控制模型能看到的内置工具；空数组表示禁用全部内置工具。
+# 如需完整 Claude Code 工具集，可改为 claude_code。
+tools: []
+allowed_tools: []
+disallowed_tools: []
+permission_mode: dontAsk
+
+max_turns: 5
+max_budget_usd: null
+
+# 外部 MCP 使用 Claude Code 原生 .mcp.json；strict 模式忽略其他来源。
+mcp_config: .mcp.json
+strict_mcp_config: true
+
+# Skills 使用精确名称；all 启用所有已发现 Skill，[] 明确禁用。
+skills: []
+setting_sources: [project]
+plugins: []
+
+prompt_dir: config/prompts
+default_prompt: default
+
+# Claude CLI 的完整 transcript 默认进入临时目录并在运行后删除。
+# 需要 resume 时改为 project；需要沿用 ~/.claude 登录/设置时改为 default。
+runtime_state:
+  mode: ephemeral
+  project_path: .agent-state/claude
+
+include_partial_messages: false
+include_hook_events: true
+forward_subagent_text: false
+
+logging:
+  level: INFO
+  jsonl_path: logs/agent/events.jsonl
+  capture_stderr: true
+  max_bytes: 10485760
+  backup_count: 5
+  # 完整 debug 可能含敏感上下文，默认关闭且不得提交。
+  debug_file: null

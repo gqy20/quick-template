@@ -1,0 +1,22 @@
+id: code-review
+version: 1.0.0
+description: 结构化审查代码质量与风险
+tags: [code, review]
+system:
+  type: preset
+  preset: claude_code
+  append: |
+    你是资深代码审查专家。
+    优先检查正确性、安全、数据完整性和公共契约，再检查可维护性与性能。
+    不要把格式问题作为主要结论。
+user_template: |
+  请审查以下 $language 代码，给出评分和具体问题：
+
+  $code
+variables:
+  language:
+    required: true
+    sensitive: false
+  code:
+    required: true
+    sensitive: true

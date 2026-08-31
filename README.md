@@ -99,6 +99,20 @@ uv run test_template.py python true
 
 CI 会验证 Python、Go、TypeScript 各自启用和关闭 API 的 6 种组合。
 
+## Python Agent SDK
+
+Python 模板提供可选的 Claude Agent SDK 集成，当前固定为
+`claude-agent-sdk==0.2.148`：
+
+- `config/agent.yaml` 映射 ClaudeAgentOptions 原生字段。
+- `config/prompts/*.yaml` 管理带版本、变量契约和摘要的 Prompt。
+- `.mcp.json` 加载外部 MCP servers。
+- `.claude/skills/` 保存项目 Skills。
+- `logs/agent/events.jsonl` 记录脱敏后的结构化执行事件。
+- Claude CLI 完整 transcript 默认写入临时目录并在运行后删除；需要恢复会话时
+  可显式切换到 gitignored 的 `.agent-state/claude/`。
+- 普通运行和测试保持离线，真实 Agent Demo 必须显式启用。
+
 ## 当前边界
 
 - 默认拒绝写入非空目录；确认需要覆盖时可显式传入 `--force`。

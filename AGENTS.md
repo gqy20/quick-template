@@ -50,6 +50,11 @@ commit、push、Tag、Release 或其他外部写入许可。
 - Agent 维护契约：本文件
 - 生成项目 Agent 契约：`shared/AGENTS.md`
 - 前端设计基线：`shared/DESIGN.md`
+- Python Agent 模板：`languages/python/src/{{package_name}}/agent.py`
+- Agent 日志模板：`languages/python/src/{{package_name}}/agent_log.py`
+- Agent 运行配置：`languages/python/config/agent.yaml`
+- Prompt 资产：`languages/python/config/prompts/`
+- MCP / Skills 配置：`languages/python/.mcp.json`、`.claude/skills/`
 - 文档站实现：`docs/`
 - 模板引擎契约：`src/scaffold/` 与 `tests/`
 - 线上真实门禁：`.github/workflows/test.yml`

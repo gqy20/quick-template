@@ -56,6 +56,34 @@
 {{#endif}}
 {{#endif}}
 
+{{#if language == 'python'}}
+## Claude Agent SDK（可选）
+
+安装可选依赖：
+
+```bash
+uv sync --extra agent
+```
+
+原生配置入口：
+
+- `config/agent.yaml`：模型、工具、权限、MCP/Skills、日志和状态模式。
+- `config/prompts/*.yaml`：有版本和变量契约的 Prompt。
+- `.mcp.json`：Claude Code 原生 MCP server 配置。
+- `.claude/skills/<name>/SKILL.md`：项目 Skills。
+- `logs/agent/events.jsonl`：脱敏后的结构化 Agent 执行日志。
+- `.agent-state/claude/`：仅在持久 Session 模式使用的完整 transcript。
+
+`skills` 使用 SDK 原生精确名称过滤；MCP 使用 `mcp_servers` 原生配置路径。
+默认禁用内置工具和 Skills，permission mode 为 `dontAsk`，不会自动批准未知操作。
+普通 `main` 保持离线；只有显式运行 `python -m {{ package_name }}.main --agent-demo`
+才会调用真实 Claude。
+
+默认 `runtime_state.mode: ephemeral`，每次运行使用临时
+`CLAUDE_CONFIG_DIR` 并在结束后删除。需要 resume 时改为 `project`；
+只有明确需要沿用 Claude Code 用户登录和全局设置时才使用 `default`。
+
+{{#endif}}
 ## 快速开始
 
 **前置要求：**
