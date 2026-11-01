@@ -4,9 +4,10 @@
   "description": "{{ description }}",
   "type": "module",
   "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsup src/index.ts --format esm",
+    "build": "tsup src/index.ts --format esm --clean && tsc --declaration --emitDeclarationOnly",
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "biome check .",

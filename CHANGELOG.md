@@ -15,6 +15,9 @@
   并在存在 `ANTHROPIC_API_KEY` 时移除 `ANTHROPIC_AUTH_TOKEN`，避免两种
   认证头冲突与网关地址被宿主环境改写。FastAPI 入口改为读取
   `API_HOST` / `API_PORT` / `DEBUG`。
+- TypeScript 模板的构建同时产出类型声明：`tsup` 生成 JS，
+  `tsc --declaration --emitDeclarationOnly` 生成 `.d.ts`，
+  `package.json` 增加 `types` 字段；Biome 排除 `dist` 与 `coverage`。
 - 生成项目的 Agent 失败按类型区分：`AgentError` 基类下新增
   `AgentConnectionError`、`AgentProcessError`、`AgentBudgetExceededError`、
   `AgentRateLimitError`，SDK 异常会映射为由 `__cause__` 保留原始错误的
@@ -56,6 +59,11 @@
   读的契约。验收证据归入编号专题，取消独立的 design-qa 路径。
 ### Removed
 
+- 删除生成的 Python 项目里的 `scripts/check.py`。它调用裸 `ruff` 与
+  `pytest`（缺 `uv run`，直接运行会抛 `FileNotFoundError`），
+  且与 Makefile 的 `make all` 重复而不含 mypy，全程无引用。
+- 删除仓库根的 `design-qa.md`：其中的截图等证据是本机临时产物、未入库，
+  记录的内容已在 `shared/DESIGN.md` 与提交历史中。
 - 删除仓库根的 `examples/claude_agent.py` 与 `examples/prompts/`。它是模板化
   之前的独立 Claude Agent SDK 封装原型，没有测试、没有文档引用，版本也停在
   `0.2.148`；其中可迁移的错误分类已并入模板的 `agent.py`。
