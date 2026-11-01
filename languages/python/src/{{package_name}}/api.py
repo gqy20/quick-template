@@ -1,4 +1,4 @@
-{{#if add_api}}"""FastAPI 应用示例 - 展示标准 API 开发规范。
+"""FastAPI 应用示例 - 展示标准 API 开发规范。
 
 本模块提供一个规范的 FastAPI 应用示例，包括：
 - 统一的响应格式
@@ -408,4 +408,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main(){{#endif}}
+    main()

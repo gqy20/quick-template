@@ -1,4 +1,4 @@
-{{#if add_api}}package tests
+package tests
 
 import (
 	"net/http"
@@ -26,4 +26,4 @@ func TestHealthCheck(t *testing.T) {
 	if w.Code != http.StatusOK {
 		t.Errorf("expected status 200, got %d", w.Code)
 	}
-}{{#endif}}
+}

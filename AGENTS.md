@@ -41,6 +41,9 @@ quick-template 的交付物不是三套 Hello World，而是一个可安装、�
   表达式只支持 `varname`、`varname=='val'`、`varname!='val'`。标记独占
   一行时其后的换行归标记行、渲染后不产生空行；标记在行中时其后换行属于
   内容。引擎行为以 `src/scaffold/engine.py` 与 `tests/test_engine.py` 为准。
+- 整文件的条件分发写在模板根目录的 `.template.yml`，键是相对路径、值是
+  条件表达式；未列出的文件始终生成。段落级条件仍用行内 `{{#if}}`。
+  清单由 `src/scaffold/files.py` 解析，以 `tests/test_manifest.py` 为准。
 
 代码、测试、当前 Schema 和已合并配置描述已实现事实。Roadmap、TODO、
 草案和 Proposed 设计不得当作已经实现的能力。

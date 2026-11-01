@@ -34,6 +34,11 @@ def _eval_condition(expr: str, vars_dict: dict) -> bool:
     return bool(vars_dict.get(expr, False))
 
 
+def evaluate_condition(expr: str, vars_dict: dict) -> bool:
+    """按模板条件表达式求值，供文件分发清单复用。"""
+    return _eval_condition(expr, vars_dict)
+
+
 def _process_branches(text: str, vars_dict: dict, prefix: str = "") -> str:
     """处理 if/elif/else/endif 链（正确处理嵌套）。"""
     parts = re.split(r"(\{\{#(?:if|elif|else|endif)[^}]*\}\})", text)

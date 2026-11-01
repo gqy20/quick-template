@@ -1,0 +1,4 @@
+# 按条件分发的模板文件。未列出的文件始终生成。
+files:
+  "src/{{ package_name }}/api.py": add_api
+  "tests/test_api.py": add_api

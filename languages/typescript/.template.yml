@@ -1,0 +1,4 @@
+# 按条件分发的模板文件。未列出的文件始终生成。
+files:
+  "src/api/router.ts": add_api
+  "tests/api.test.ts": add_api

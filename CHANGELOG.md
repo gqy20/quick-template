@@ -9,6 +9,8 @@
   LangGraph，覆盖配置、工具权限、MCP/Skills、Prompt、结构化输出和日志。
 - 新增 `--with-frontend`，按需生成语义 Token、响应式、无障碍和 Design QA
   驱动的 `DESIGN.md`。
+- 新增模板根目录的 `.template.yml` 分发清单，整文件条件不再靠文件首尾的
+  `{{#if}}` 包裹；段落级条件仍用行内标记。
 - 新增 Claude Agent SDK 的结构化 JSONL 日志、MCP、Skills 与项目配置。
 - 新增版本化 YAML Prompt Registry 和 ephemeral/project/default Session 状态隔离。
 - 新增 LangGraph 1.2.11 结构化工作流、离线 Fake Model 测试和显式运行示例。

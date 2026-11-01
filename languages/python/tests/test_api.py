@@ -1,4 +1,4 @@
-{{#if add_api}}"""API 模块的测试用例。"""
+"""API 模块的测试用例。"""
 
 import pytest
 from fastapi.testclient import TestClient
@@ -200,4 +200,4 @@ class TestValidation:
         """测试创建用户时年龄超出范围。"""
         user_data = {"name": "测试", "email": "test@example.com", "age": 200}
         response = client.post("/api/v1/users", json=user_data)
-        assert response.status_code == 422{{#endif}}
+        assert response.status_code == 422
