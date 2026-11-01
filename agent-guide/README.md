@@ -36,8 +36,13 @@ Python 项目代入自己的包名即可；其他项目按自己的模块结构�
 判据：**任务能用"给一段上下文、要一个结构化结果"描述，用 Claude Agent
 SDK；任务需要多步骤、条件分支或中途暂停，用 LangGraph。**
 
-两者共享 Prompt Registry、Pydantic 输出模型和高层日志约定，可以按需混用
-—— 例如用 LangGraph 编排流程，其中某个节点调用 Claude Agent SDK。
+两者共享 Prompt Registry、Pydantic 输出模型和高层日志约定，但运行时不
+可互换：Claude Agent SDK 的执行器没有实现 LangGraph 要求的模型协议
+（`with_structured_output` 与 `bind_tools`），不能当作节点里的模型使用。
+
+需要组合时，可以在 LangGraph 的某个节点内发起一次完整的 SDK 查询，把
+返回值写回 State。代价是这次调用对图是黑盒——工具循环、重试和中断都在
+SDK 内部，LangGraph 看不到也控制不了。
 
 ## 共同约定
 

@@ -26,6 +26,11 @@
 - TypeScript 模板默认包管理器由 npm 改为 pnpm，CI 与 Makefile 同步改用
   `pnpm exec`；Biome 固定到 `2.5.11` 并限定只处理 TS/JS/JSON 文件。
 - 模板引擎不再为独占一行的条件标记输出多余空行。
+- 生成项目的 `permission_mode` 补上 SDK 支持的 `auto`，并修正各模式的
+  说明：`dontAsk` 是自动拒绝而非直接失败，`plan` 允许只读命令，
+  `bypassPermissions` 仍有任何模式都不自动批准的动作。
+- CI 增加 workflow 静态检查（含 shellcheck），并验证生成项目的提交门禁
+  能安装、能拦截非法提交信息；生成矩阵加入 `--with-frontend` 维度。
 - `DESIGN.md` 默认不再生成，只有 `--with-frontend` 时输出；相关的契约
   引用同步按条件渲染。
 - `CHANGELOG.md` 与 `PRODUCT.md` 移入 `docs/`，根目录只保留每次工作都要

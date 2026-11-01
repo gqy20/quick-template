@@ -44,7 +44,6 @@ def build_vars(
     data_file: Path | None,
     language: str,
     add_api: bool,
-    output_dir: Path | None,
     has_frontend: bool = False,
 ) -> dict:
     """构建完整变量字典：默认值 → 数据文件 → CLI 覆盖 → 派生变量。"""
@@ -58,7 +57,6 @@ def main(argv: list[str] | None = None) -> None:
         args.data_file,
         args.language,
         args.add_api,
-        args.output_dir,
         args.with_frontend,
     )
 

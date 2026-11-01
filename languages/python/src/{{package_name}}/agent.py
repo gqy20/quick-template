@@ -22,7 +22,7 @@ from {{ package_name }}.prompt import RenderedPrompt
 T = TypeVar("T", bound=BaseModel)
 SettingSource = Literal["user", "project", "local"]
 PermissionMode = Literal[
-    "default", "acceptEdits", "bypassPermissions", "plan", "dontAsk"
+    "default", "acceptEdits", "bypassPermissions", "plan", "dontAsk", "auto"
 ]
 
 

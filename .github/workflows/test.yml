@@ -12,6 +12,19 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  workflow-lint:
+    name: Workflow 静态检查
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v7
+
+      # runner 自带 shellcheck；本地 pre-commit 关闭 shellcheck 以兼容未安装的机器
+      - name: actionlint
+        run: |
+          go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+          "$(go env GOPATH)/bin/actionlint" -color
+
   package-smoke:
     name: Wheel 安装冒烟测试
     runs-on: ubuntu-latest
@@ -43,16 +56,31 @@ jobs:
         include:
           - language: python
             with-api: true
+            with-frontend: false
           - language: python
             with-api: false
+            with-frontend: false
+          - language: python
+            with-api: true
+            with-frontend: true
           - language: golang
             with-api: true
+            with-frontend: false
           - language: golang
             with-api: false
+            with-frontend: false
+          - language: golang
+            with-api: true
+            with-frontend: true
           - language: typescript
             with-api: true
+            with-frontend: false
           - language: typescript
             with-api: false
+            with-frontend: false
+          - language: typescript
+            with-api: true
+            with-frontend: true
 
     steps:
       - name: 检出代码
@@ -81,7 +109,7 @@ jobs:
       - name: 使用 scaffold 引擎生成项目
         id: generate
         run: |
-          OUTPUT=$(uv run test_template.py "${{ matrix.language }}" "${{ matrix.with-api }}")
+          OUTPUT=$(uv run test_template.py "${{ matrix.language }}" "${{ matrix.with-api }}" "${{ matrix.with-frontend }}")
           echo "$OUTPUT"
           DST_DIR=$(echo "$OUTPUT" | grep "^OK:" | cut -d: -f2-)
           echo "dst_dir=$DST_DIR" >> "$GITHUB_OUTPUT"
@@ -122,6 +150,26 @@ jobs:
           D="${{ steps.generate.outputs.dst_dir }}"
           test -f "$D/Makefile"
           test -f "$D/README.md"
+          test -f "$D/docs/README.md"
+          test -f "$D/.pre-commit-config.yaml"
+          # 分发清单只用于生成，不得出现在输出里
+          test ! -f "$D/.template.yml"
+          # DESIGN.md 与 --with-frontend 一致
+          if [ "${{ matrix.with-frontend }}" = "true" ]; then
+            test -f "$D/DESIGN.md"
+            grep -q "DESIGN.md" "$D/AGENTS.md"
+          else
+            test ! -f "$D/DESIGN.md"
+            if grep -q "DESIGN.md" "$D/AGENTS.md"; then
+              echo "AGENTS.md 不应引用 DESIGN.md"
+              exit 1
+            fi
+          fi
+          # 不留模板控制标记
+          if grep -rq "{{#endif}}" "$D"; then
+            echo "生成结果残留模板控制标记"
+            exit 1
+          fi
 
       # ========== Python 完整检查 ==========
       - name: Python — 安装依赖
@@ -182,3 +230,26 @@ jobs:
         if: matrix.language == 'typescript'
         working-directory: ${{ steps.generate.outputs.dst_dir }}
         run: pnpm exec vitest run
+
+      # ========== 生成的提交门禁必须能加载并执行 ==========
+      - name: 提交门禁 — 初始化仓库并安装 hook
+        working-directory: ${{ steps.generate.outputs.dst_dir }}
+        run: |
+          git init -q .
+          git add -A
+          uvx pre-commit install --hook-type pre-commit --hook-type commit-msg
+
+      - name: 提交门禁 — 全量运行
+        working-directory: ${{ steps.generate.outputs.dst_dir }}
+        run: uvx pre-commit run --all-files --show-diff-on-failure
+
+      - name: 提交门禁 — commit-msg 拦截并放行
+        working-directory: ${{ steps.generate.outputs.dst_dir }}
+        run: |
+          if git -c user.name=ci -c user.email=ci@example.com \
+               commit -m "不符合约定的提交信息"; then
+            echo "预期拦截，但提交成功"
+            exit 1
+          fi
+          git -c user.name=ci -c user.email=ci@example.com \
+            commit -m "chore: 验证提交门禁"

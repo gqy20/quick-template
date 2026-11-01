@@ -50,8 +50,8 @@ class TestParseArgs:
         assert args.with_frontend is True
 
     def test_build_vars_carries_frontend_flag(self):
-        assert build_vars(None, "python", True, None)["has_frontend"] is False
-        assert build_vars(None, "python", True, None, True)["has_frontend"] is True
+        assert build_vars(None, "python", True)["has_frontend"] is False
+        assert build_vars(None, "python", True, True)["has_frontend"] is True
 
     def test_version_flag(self, capsys):
         with pytest.raises(SystemExit, match="0"):
@@ -88,7 +88,7 @@ class TestBuildVars:
     """变量构建：defaults + data file + CLI flags + derived。"""
 
     def test_defaults_only(self):
-        vars_dict = build_vars(None, "python", True, None)
+        vars_dict = build_vars(None, "python", True)
         assert vars_dict["language"] == "python"
         assert vars_dict["add_api"] is True
         assert "project_slug" in vars_dict
@@ -98,22 +98,17 @@ class TestBuildVars:
         data = {"project_name": "Custom", "add_api": False}
         f = tmp_path / "data.json"
         f.write_text(json.dumps(data))
-        vars_dict = build_vars(f, "typescript", True, None)
+        vars_dict = build_vars(f, "typescript", True)
         assert vars_dict["project_name"] == "Custom"
         # CLI --add-api should override data file
         assert vars_dict["add_api"] is True
 
-    def test_cli_output_dir_affects_project_path(self):
-        vars_dict = build_vars(None, "python", True, Path("/tmp/out"))
-        # output_dir doesn't go into vars but affects where files are written
-        assert vars_dict["language"] == "python"
-
     def test_golang_sets_go_version(self):
-        vars_dict = build_vars(None, "golang", True, None)
+        vars_dict = build_vars(None, "golang", True)
         assert vars_dict["language"] == "golang"
         assert "go_version" in vars_dict
 
     def test_typescript_sets_node_version(self):
-        vars_dict = build_vars(None, "typescript", True, None)
+        vars_dict = build_vars(None, "typescript", True)
         assert vars_dict["language"] == "typescript"
         assert "node_version" in vars_dict
