@@ -1,6 +1,6 @@
 [project]
 name = "quick-template"
-version = "0.3.0"
+version = "0.4.0"
 description = "Multi-language project scaffolding tool (Python / Go / TypeScript)"
 readme = "README.md"
 requires-python = ">=3.11"

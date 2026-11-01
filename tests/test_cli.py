@@ -54,9 +54,12 @@ class TestParseArgs:
         assert build_vars(None, "python", True, True)["has_frontend"] is True
 
     def test_version_flag(self, capsys):
+        from scaffold import __version__
+
         with pytest.raises(SystemExit, match="0"):
             parse_args(["--version"])
-        assert capsys.readouterr().out.strip() == "pytest 0.3.0"
+        # 程序名取自 argv[0]，在 pytest 下是 "pytest"；只断言版本号
+        assert capsys.readouterr().out.strip().endswith(__version__)
 
 
 def test_template_root_contains_active_templates():

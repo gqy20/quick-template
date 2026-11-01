@@ -1,6 +1,6 @@
 """quick-template: 多语言项目脚手架工具。"""
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 from .cli import build_vars, get_template_root, parse_args, prepare_output_dir
 from .engine import render
