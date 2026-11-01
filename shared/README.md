@@ -21,7 +21,7 @@
 {{#elif language == 'golang'}}
 现代 Go 项目脚手架，使用 `Gin` + `go mod` + `golangci-lint` 构建。
 {{#elif language == 'typescript'}}
-现代 TypeScript 项目脚手架，使用 `npm` + `Biome` + `vitest` 构建。
+现代 TypeScript 项目脚手架，使用 `pnpm` + `Biome` + `vitest` 构建。
 {{#endif}}
 
 **核心特性：**
@@ -31,7 +31,6 @@
 - ⚡ **ruff** - 代码检查和格式化
 - ✅ **pytest** - 测试框架
 - 📝 **rich** - 美观的日志和终端输出
-- 🪝 **pre-commit** - 提交前检查
 {{#elif language == 'golang'}}
 - ⚡ **Go** - 高性能编译型语言
 - 🌐 **Gin** - 高性能 Web 框架
@@ -39,12 +38,13 @@
 - 🔍 **golangci-lint** - 一站式代码检查
 - 📊 **slog** - 结构化日志
 {{#elif language == 'typescript'}}
-- 📦 **npm** - 包管理器
+- 📦 **pnpm** - 包管理器
 - ⚡ **Biome** - 代码检查和格式化（替代 ESLint + Prettier）
 - ✅ **vitest** - 极速测试框架
 - 🎯 **TypeScript** - 严格类型安全
 - 📦 **tsup** - 轻量打包工具
 {{#endif}}
+- 🪝 **pre-commit** - 提交前检查与提交信息校验
 - 🔄 **CI/CD** - GitHub Actions
 {{#if add_api}}
 {{#if language == 'python'}}
@@ -127,8 +127,9 @@ Claude 的 `skills` 使用 SDK 原生精确名称过滤；MCP 使用原生配置
 - Go {{ go_version }}+
 {{#elif language == 'typescript'}}
 - Node.js {{ node_version }}+
-- npm
+- pnpm
 {{#endif}}
+- [pre-commit](https://pre-commit.com)
 
 ```bash
 # 克隆项目
@@ -179,7 +180,7 @@ make test
 ├── package.json
 ├── tsconfig.json
 {{#endif}}
-├── docs/
+├── docs/                # 专题文档：产品边界、版本变化、专题索引
 ├── Makefile
 ├── AGENTS.md
 ├── DESIGN.md

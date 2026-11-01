@@ -12,23 +12,38 @@ repos:
       - id: debug-statements
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.10
+    rev: v0.17.3
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
       - id: ruff-format
 
   - repo: https://github.com/rhysd/actionlint
-    rev: v1.7.10
+    rev: v1.7.12
     hooks:
       - id: actionlint
         args: [-shellcheck=]
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.14.1
+  - repo: local
     hooks:
       - id: mypy
-        additional_dependencies:
-          - pyproject.toml
-          - rich>=13.0.0
-        args: [--config-file=pyproject.toml]
+        name: mypy
+        entry: uv run --all-extras mypy src/{{ package_name }}
+        language: system
+        types: [python]
+        pass_filenames: false
+        require_serial: true
+
+      - id: commit-msg-lint
+        name: commit message lint
+        entry: bash scripts/hooks/commit-msg-lint.sh
+        language: system
+        stages: [commit-msg]
+
+  - repo: local
+    hooks:
+      - id: commit-msg-lint
+        name: commit message lint
+        entry: bash scripts/hooks/commit-msg-lint.sh
+        language: system
+        stages: [commit-msg]

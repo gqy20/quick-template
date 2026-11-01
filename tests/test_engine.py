@@ -113,6 +113,34 @@ class TestProcessConditionals:
         assert process_conditionals(tmpl, {"language": "typescript"}) == "ts"
 
 
+class TestMarkerLineBreaks:
+    """标记独占一行时，其换行属于标记行，渲染后不得多出空行。"""
+
+    def test_block_on_own_line_keeps_no_blank_line(self):
+        assert render("A\n{{#if x}}\nB\n{{#endif}}\n", {"x": True}) == "A\nB\n"
+
+    def test_block_followed_by_content(self):
+        assert render("A\n{{#if x}}\nB\n{{#endif}}\nC\n", {"x": True}) == "A\nB\nC\n"
+
+    def test_inline_marker_keeps_following_newline(self):
+        """标记在行中时，其后的换行属于内容，必须保留。"""
+        assert render('import ({{#if x}}\n\t"a"\n{{#endif}}\n)', {"x": True}) == (
+            'import (\n\t"a"\n)'
+        )
+
+    def test_single_line_block_is_unchanged(self):
+        assert render("{{#if x}}yes{{#endif}}", {"x": True}) == "yes"
+
+    def test_elif_chain_on_own_lines(self):
+        tmpl = "{{#if x==1}}a\n{{#elif x==2}}b\n{{#else}}c\n{{#endif}}\n"
+        assert render(tmpl, {"x": "1"}) == "a\n"
+        assert render(tmpl, {"x": "3"}) == "c\n"
+
+    def test_nested_blocks_on_own_lines(self):
+        tmpl = "{{#if a}}\n{{#if b}}\nX\n{{#endif}}\n{{#endif}}\n"
+        assert render(tmpl, {"a": True, "b": True}) == "X\n"
+
+
 class TestRender:
     """完整渲染流程：先条件后变量。"""
 

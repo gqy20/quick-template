@@ -11,11 +11,16 @@
 - 新增 LangGraph 1.2.11 结构化工作流、离线 Fake Model 测试和显式运行示例。
 - 为 LangGraph 增加原生 `ToolNode` 工具循环、MCP Adapter、默认拒绝的 MCP
   工具授权、轮次上限和脱敏工具审计日志。
+- 为 Python、Go、TypeScript 模板补齐 pre-commit 提交门禁，包含提交信息
+  约定式校验；Python 用 uv、TypeScript 用 pnpm 作为默认包管理器。
 
 ### Changed
 
 - `CLAUDE.md` 改为指向 `AGENTS.md` 与 `DESIGN.md`，避免重复规则漂移。
 - Claude Agent SDK 升级并固定到 `0.2.148`，普通应用启动不再自动调用模型。
+- TypeScript 模板默认包管理器由 npm 改为 pnpm，CI 与 Makefile 同步改用
+  `pnpm exec`；Biome 固定到 `2.5.11` 并限定只处理 TS/JS/JSON 文件。
+- 模板引擎不再为独占一行的条件标记输出多余空行。
 
 ## [0.3.0] - 2026-08-31
 

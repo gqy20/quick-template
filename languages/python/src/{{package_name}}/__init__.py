@@ -14,11 +14,13 @@ from .logger import (
     setup_logger,
 )
 {{#if add_api}}
+
 try:
     from .api import app as api_app
 except ImportError:
     api_app = None  # type: ignore[assignment]
 {{#endif}}
+
 __version__ = "{{version}}"
 
 __all__ = [

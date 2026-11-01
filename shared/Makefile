@@ -9,7 +9,7 @@ install:
 {{#elif language == 'golang'}}
 	go mod download
 {{#elif language == 'typescript'}}
-	npm install
+	pnpm install
 {{#endif}}
 
 # ---- 代码检查 ----
@@ -20,7 +20,7 @@ check:
 	golangci-lint run ./...
 	go vet ./...
 {{#elif language == 'typescript'}}
-	npx biome check .
+	pnpm exec biome check .
 {{#endif}}
 
 # ---- 格式化 ----
@@ -31,7 +31,7 @@ format:
 	gofmt -w .
 	goimports -w .
 {{#elif language == 'typescript'}}
-	npx biome format --write .
+	pnpm exec biome format --write .
 {{#endif}}
 
 # ---- 类型检查 ----
@@ -41,7 +41,7 @@ typecheck:
 {{#elif language == 'golang'}}
 	go build ./...
 {{#elif language == 'typescript'}}
-	npx tsc --noEmit
+	pnpm exec tsc --noEmit
 {{#endif}}
 
 # ---- 测试 ----
@@ -51,7 +51,7 @@ test:
 {{#elif language == 'golang'}}
 	go test ./... -race -count=1
 {{#elif language == 'typescript'}}
-	npx vitest run
+	pnpm exec vitest run
 {{#endif}}
 
 test-cov:
@@ -61,7 +61,7 @@ test-cov:
 	go test ./... -race -coverprofile=coverage.out
 	go tool cover -html=coverage.out -o coverage.html
 {{#elif language == 'typescript'}}
-	npx vitest run --coverage
+	pnpm exec vitest run --coverage
 {{#endif}}
 
 # ---- 运行 ----
@@ -71,7 +71,7 @@ run:
 {{#elif language == 'golang'}}
 	go run ./cmd/{{ project_slug }}
 {{#elif language == 'typescript'}}
-	npm run dev
+	pnpm run dev
 {{#endif}}
 
 # ---- 清理 ----

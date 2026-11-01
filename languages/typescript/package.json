@@ -16,11 +16,12 @@
   "keywords": [],
   "author": "{{ author_name }} <{{ author_email }}>",
   "license": "{{ license }}",
+  "packageManager": "pnpm@10.34.9",
   "dependencies": {{#if add_api}}{
     "hono": "^4.7.0"
   }{{#else}}{}{{#endif}},
   "devDependencies": {
-    "@biomejs/biome": "^2.5.11",
+    "@biomejs/biome": "2.5.11",
     "@types/node": "^24.0.0",
     "@vitest/coverage-v8": "^4.1.11",
     "tsup": "^8.5.0",

@@ -35,10 +35,6 @@
 - 依赖管理：uv
 - 源码：`src/{{ package_name }}/`
 - 测试：pytest；lint / format：Ruff；类型检查：Mypy
-- Agent 配置：`config/agent.yaml`；Prompt：`config/prompts/*.yaml`
-- LangGraph 配置：`config/runtimes/langgraph.yaml`
-- LangGraph 工具适配：`src/{{ package_name }}/langgraph_tools.py`
-- MCP：`.mcp.json`；Skills：`.claude/skills/`
 - Agent 审计日志：`logs/agent/events.jsonl`，默认不得记录正文或工具值
 - `.mcp.json` 只声明连接；LangGraph MCP 工具还需在 Runtime 配置显式授权
 - Claude CLI 完整 transcript 默认使用临时目录，不写入用户全局 `~/.claude`
@@ -47,7 +43,7 @@
 - 入口：`cmd/{{ project_slug }}/`
 - 测试：go test；lint / format：golangci-lint / gofmt
 {{#elif language == 'typescript'}}- 运行时：Node.js {{ node_version }}+ / TypeScript
-- 依赖管理：npm
+- 依赖管理：pnpm
 - 源码：`src/`
 - 测试：Vitest；lint / format：Biome；类型检查：tsc
 {{#endif}}
@@ -61,17 +57,25 @@
 - Agent 执行规则：本文件
 - 前端视觉与交互契约：`DESIGN.md`
 - 版本变化：`docs/CHANGELOG.md`
+- 产品范围与边界：`docs/PRODUCT.md`
+- 专题文档索引与命名规范：`docs/README.md`
 - 工程命令：`Makefile`
 - 线上门禁：`.github/workflows/`
 {{#if language == 'python'}}- Python 依赖与工具配置：`pyproject.toml`
 - Claude Agent SDK 配置：`config/agent.yaml`、`config/prompts/`、
   `.mcp.json`、`.claude/skills/`
+- LangGraph 配置：`config/runtimes/langgraph.yaml`；工具适配：
+  `src/{{ package_name }}/langgraph_tools.py`
 {{#elif language == 'golang'}}- Go 模块与依赖：`go.mod`
-{{#elif language == 'typescript'}}- Node 依赖与脚本：`package.json`
+{{#elif language == 'typescript'}}- Node 依赖与脚本：`package.json`；锁文件：`pnpm-lock.yaml`
 {{#endif}}
 
 只读取当前任务需要的文档和代码。若文档与代码冲突，先核对测试、Schema
 和运行结果；不得静默选择更符合预期的一方。
+
+同一主题只保留一份权威文档：行为说明、现行清单、规划、架构决策和历史
+验证分别维护在各自唯一位置，不复制规则或留下纯跳转壳。改规则只改该主题
+的权威文档，其余位置引用而不复述。
 
 ## 按请求类型确定授权
 
@@ -144,16 +148,14 @@ push 不等于 Tag、Release、部署或对外发送消息。
 ## 前端与设计契约
 
 仓库出现用户界面、页面、组件、样式或可视化时，`DESIGN.md` 自动成为
-前端改动的必读规范。
+前端改动的必读规范，其中已定义语义 Token、组件状态、响应式、无障碍、
+动效、禁止模式和 Design QA 要求。
 
 - 设计先服从产品任务、信息层级和可访问性，再追求装饰。
 - 颜色、字体、间距、圆角、阴影和动效必须来自语义 Token。
 - 不在组件中散写与 Token 重复的静态视觉值。
-- 修改视觉方向、Token 或跨页面组件规则时同步 `DESIGN.md`。
-- 截图、差异、发现与迭代历史写入 `design-qa.md` 或
-  `docs/design-qa/`，不得污染稳定规范。
-- UI 改动必须验证目标视口、键盘焦点、文本缩放、空/错/加载态和
-  `prefers-reduced-motion`。
+- 修改视觉方向、Token 或跨页面组件规则时同步 `DESIGN.md`；逐次截图、
+  差异与发现写入 `docs/` 下对应专题的独立文档，不得污染稳定规范。
 
 ## 工作区与 Git 安全
 
@@ -164,6 +166,12 @@ push 不等于 Tag、Release、部署或对外发送消息。
 - 未经明确要求，不 commit、push、创建 PR、Tag、Release、部署或修改远端。
 - 提交时只暂存当前任务文件；提交前检查 cached diff 和 `diff --check`。
 - `.env`、Token、真实响应、数据库、日志、缓存和构建产物不得提交。
+- 提交信息遵循约定式提交：`type(scope)?: 描述`，描述允许中文。合法 type：
+  `feat`、`fix`、`chore`、`docs`、`refactor`、`style`、`test`、`perf`、
+  `build`、`ci`、`revert`。
+- 新设备克隆后执行 `pre-commit install --hook-type pre-commit --hook-type
+  commit-msg` 启用提交门禁；默认只安装 `pre-commit`，`commit-msg` 必须显式
+  指定。单次跳过用 `git commit --no-verify`。
 
 ## 验证阶梯
 
@@ -176,14 +184,8 @@ push 不等于 Tag、Release、部署或对外发送消息。
 5. 前端改动：目标视口截图与交互 / 可访问性检查。
 6. 外部系统：仅在明确授权后运行真实集成测试。
 
-通用入口：
-
-```bash
-make check
-make typecheck
-make test
-make all
-```
+通用入口是 `make check`、`make typecheck`、`make test`、`make all`；定向验证
+只覆盖本次改动的路径。
 
 {{#if language == 'python'}}Python 定向验证：
 
@@ -202,9 +204,9 @@ go vet ./...
 {{#elif language == 'typescript'}}TypeScript 定向验证：
 
 ```bash
-npx biome check <changed-paths>
-npx tsc --noEmit
-npx vitest run <relevant-tests>
+pnpm exec biome check <changed-paths>
+pnpm exec tsc --noEmit
+pnpm exec vitest run <relevant-tests>
 ```
 {{#endif}}
 
@@ -227,7 +229,7 @@ npx vitest run <relevant-tests>
 - 公共行为、接口或兼容边界变化同步文档和 CHANGELOG。
 - 架构理由写入专门设计文档或 ADR，不把长篇理由堆入代码注释。
 - 注释解释非显然约束、风险和取舍，不复述代码字面行为。
-- `CLAUDE.md` 只做平台路由，不复制本文件。
+- `CLAUDE.md` 只做平台路由，不复制本文件；它用 `@` 引入本文件，不复述规则。
 
 ## Code Review Rules
 

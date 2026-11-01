@@ -1,0 +1,55 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      # languages/ 与 shared/ 是未渲染的模板源，含 {{ }} 标记，
+      # 不是合法 YAML/JSON/TOML；渲染结果由生成项目的 CI 校验。
+      - id: check-yaml
+        exclude: ^(languages|shared)/
+      - id: check-json
+        exclude: ^(languages|shared)/
+      - id: check-toml
+        exclude: ^(languages|shared)/
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.5
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        exclude: ^(languages|shared)/
+      - id: ruff-format
+        exclude: ^(languages|shared)/
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.12
+    hooks:
+      - id: actionlint
+        args: [-shellcheck=]
+
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: uv run mypy src/scaffold
+        language: system
+        types: [python]
+        pass_filenames: false
+        require_serial: true
+
+      - id: commit-msg-lint
+        name: commit message lint
+        entry: scripts/hooks/commit-msg-lint.sh
+        language: script
+        stages: [commit-msg]
+
+  - repo: local
+    hooks:
+      - id: commit-msg-lint
+        name: commit message lint
+        entry: scripts/hooks/commit-msg-lint.sh
+        language: script
+        stages: [commit-msg]

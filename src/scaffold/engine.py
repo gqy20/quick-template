@@ -34,9 +34,10 @@ def _eval_condition(expr: str, vars_dict: dict) -> bool:
     return bool(vars_dict.get(expr, False))
 
 
-def _process_branches(text: str, vars_dict: dict) -> str:
+def _process_branches(text: str, vars_dict: dict, prefix: str = "") -> str:
     """处理 if/elif/else/endif 链（正确处理嵌套）。"""
     parts = re.split(r"(\{\{#(?:if|elif|else|endif)[^}]*\}\})", text)
+    parts = _drop_marker_line_breaks(parts, prefix)
 
     branches = []
     cond = None
@@ -87,6 +88,33 @@ def _process_branches(text: str, vars_dict: dict) -> str:
     return ""
 
 
+def _marker_owns_line(content: str, marker_start: int) -> bool:
+    """判断起始于 marker_start 的标记是否独占一行。"""
+    line_start = content.rfind("\n", 0, marker_start) + 1
+    return not content[line_start:marker_start].strip()
+
+
+def _drop_marker_line_breaks(parts: list[str], prefix: str) -> list[str]:
+    """删除独占一行的条件标记之后紧跟的换行。
+
+    标记独占一行时，它的换行属于标记行而非内容；不删除会在渲染结果中
+    多出空行。prefix 是 block 之前的内容，用于判断首个标记是否位于行首。
+    """
+    result = list(parts)
+    for i, part in enumerate(result):
+        if not part.startswith("{{#"):
+            continue
+        before = result[i - 1] if i > 0 else prefix
+        if i > 0 and not before:
+            # block 以标记开头：行首由 block 之前的内容决定
+            before = prefix
+        if before and not before.endswith("\n"):
+            continue
+        if i + 1 < len(result) and result[i + 1].startswith("\n"):
+            result[i + 1] = result[i + 1][1:]
+    return result
+
+
 def _is_leaf_block(content: str) -> bool:
     """检查 {{#if...{{#endif}} 块内是否还有嵌套的 {{#if。"""
     # 排除已处理的内部标记（elif/else）
@@ -130,8 +158,12 @@ def process_conditionals(content: str, vars_dict: dict) -> str:
             if has_nested:
                 continue
 
-            processed = _process_branches(block, vars_dict)
-            content = content[:start] + processed + content[end:]
+            processed = _process_branches(block, vars_dict, content[:start])
+            tail = content[end:]
+            # {{#endif}} 独占一行时，其后的换行属于标记行而非内容。
+            if _marker_owns_line(content, end_m.start()) and tail.startswith("\n"):
+                tail = tail[1:]
+            content = content[:start] + processed + tail
 
         if content == prev:
             break

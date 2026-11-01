@@ -108,7 +108,6 @@ jobs:
         with:
           verbose: true
           print-hash: true
-
 {{#elif language == 'typescript'}}
 name: Publish to npm
 
@@ -132,16 +131,17 @@ jobs:
           node-version: "{{ node_version }}"
           registry-url: https://registry.npmjs.org/
 
-      - run: npm install
+      - uses: pnpm/action-setup@v4
 
-      - run: npm test
+      - run: pnpm install
 
-      - run: npm run build
+      - run: pnpm test
+
+      - run: pnpm run build
 
       - name: 发布到 npm
-        run: npm publish --provenance --access public
+        run: pnpm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
 {{#elif language == 'golang'}}
 {{#endif}}

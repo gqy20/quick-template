@@ -14,7 +14,7 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-{{#elif language == 'typescript'}}  # npm 依赖
+{{#elif language == 'typescript'}}  # npm/pnpm 依赖
   - package-ecosystem: "npm"
     directory: "/"
     schedule:

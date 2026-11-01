@@ -8,7 +8,7 @@
 |---|---|---|---|---|---|
 | Python | 3.13+ | uv | Ruff + Mypy | pytest | FastAPI |
 | Go | 1.27+ | Go Modules | golangci-lint | go test | Gin |
-| TypeScript | Node.js 24+ | npm | Biome | Vitest | Hono |
+| TypeScript | Node.js 24+ | pnpm | Biome | Vitest | Hono |
 
 生成结果统一提供 `make install/check/format/typecheck/test/run`，并包含 GitHub
 Actions、Dependabot、Agent 执行契约和前端设计契约。
@@ -76,6 +76,7 @@ line_length: 100
 src/scaffold/       # CLI、变量模型和模板引擎
 languages/          # Python / Go / TypeScript 专属模板
 shared/             # README、CI、Makefile 等公共模板
+agent-guide/        # 智能体开发指南（Claude Agent SDK / LangGraph）
 tests/              # 生成器单元测试
 docs/               # GitHub Pages
 ```

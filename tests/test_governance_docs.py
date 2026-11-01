@@ -1,6 +1,7 @@
 """生成项目治理文档的验收测试。"""
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -78,12 +79,68 @@ def test_generated_design_contract_has_semantic_sections(tmp_path):
 
 def test_generated_claude_instructions_route_to_canonical_contracts(tmp_path):
     output = generate_template(tmp_path, "python", False)
-    content = (output / ".claude" / "CLAUDE.md").read_text()
+    claude_md = output / ".claude" / "CLAUDE.md"
+    content = claude_md.read_text()
 
-    assert "AGENTS.md" in content
-    assert "DESIGN.md" in content
-    assert "唯一事实源" in content
+    # Claude Code 直接读 AGENTS.md；此处仅用 @ 引入作旧版本兜底，不复述规则。
+    assert content.strip() == "@../AGENTS.md"
+    assert (claude_md.parent / "../AGENTS.md").resolve() == (output / "AGENTS.md").resolve()
     assert "## 常用命令" not in content
+
+
+def test_generated_docs_follow_directory_convention(tmp_path):
+    """docs/ 承载按需查阅的文档，根目录只保留每次都要读的契约。"""
+    output = generate_template(tmp_path, "typescript", True)
+
+    assert (output / "AGENTS.md").is_file()
+    assert (output / "DESIGN.md").is_file()
+    assert (output / "README.md").is_file()
+
+    docs = output / "docs"
+    assert (docs / "README.md").is_file()
+    assert (docs / "CHANGELOG.md").is_file()
+    assert (docs / "PRODUCT.md").is_file()
+
+    # CHANGELOG 与 PRODUCT 按需查阅，不占根目录
+    assert not (output / "CHANGELOG.md").exists()
+    assert not (output / "PRODUCT.md").exists()
+
+    # 索引说明编号与命名规范
+    index = (docs / "README.md").read_text()
+    assert "90-archive" in index
+    assert "kebab-case" in index
+
+    # 前三个槽位固定，跨项目含义一致
+    assert "01-product" in index
+    assert "02-architecture" in index
+    assert "03-operations" in index
+
+
+def test_generated_docs_have_no_design_qa_special_path(tmp_path):
+    """验收证据归入编号专题，不再有独立的 design-qa 路径。"""
+    output = generate_template(tmp_path, "typescript", True)
+
+    for path in output.rglob("*.md"):
+        assert "design-qa" not in path.read_text(), path.relative_to(output)
+
+
+def test_generated_docs_have_no_broken_links(tmp_path):
+    """生成的文档内部链接与 @ 引入必须能解析。"""
+    output = generate_template(tmp_path, "python", False)
+
+    for path in output.rglob("*.md"):
+        text = path.read_text()
+        for match in re.finditer(r"\[[^\]]+\]\(([^)]+)\)", text):
+            link = match.group(1)
+            if link.startswith(("http", "#", "mailto")):
+                continue
+            target = (path.parent / link.split("#")[0]).resolve()
+            assert target.exists(), f"{path.relative_to(output)} 链接失效: {link}"
+
+        for line in text.splitlines():
+            if line.startswith("@"):
+                target = (path.parent / line[1:].strip()).resolve()
+                assert target.exists(), f"{path.relative_to(output)} 引入失效: {line}"
 
 
 def test_python_agent_uses_native_mcp_skills_and_logging_config(tmp_path):

@@ -166,19 +166,19 @@ jobs:
       - name: TypeScript — 安装依赖
         if: matrix.language == 'typescript'
         working-directory: ${{ steps.generate.outputs.dst_dir }}
-        run: npm install
+        run: pnpm install
 
       - name: TypeScript — Biome 检查
         if: matrix.language == 'typescript'
         working-directory: ${{ steps.generate.outputs.dst_dir }}
-        run: npx biome check .
+        run: pnpm exec biome check .
 
       - name: TypeScript — 类型检查
         if: matrix.language == 'typescript'
         working-directory: ${{ steps.generate.outputs.dst_dir }}
-        run: npx tsc --noEmit
+        run: pnpm exec tsc --noEmit
 
       - name: TypeScript — 运行测试
         if: matrix.language == 'typescript'
         working-directory: ${{ steps.generate.outputs.dst_dir }}
-        run: npx vitest run
+        run: pnpm exec vitest run

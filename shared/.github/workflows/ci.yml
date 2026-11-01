@@ -42,7 +42,6 @@ jobs:
 
       - name: 运行测试
         run: uv run pytest --cov=src/{{ package_name }} --cov-report=xml --cov-report=term-missing
-
 {{#elif language == 'golang'}}
   test:
     name: Go 测试
@@ -74,7 +73,6 @@ jobs:
         with:
           files: ./coverage.out
           fail_ci_if_error: false
-
 {{#elif language == 'typescript'}}
   test:
     name: TypeScript 测试
@@ -87,16 +85,18 @@ jobs:
         with:
           node-version: "{{ node_version }}"
 
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+
       - name: 安装依赖
-        run: npm install
+        run: pnpm install
 
       - name: 运行 Biome 检查
-        run: npx biome check .
+        run: pnpm exec biome check .
 
       - name: 运行类型检查
-        run: npx tsc --noEmit
+        run: pnpm exec tsc --noEmit
 
       - name: 运行测试
-        run: npx vitest run --coverage
-
+        run: pnpm exec vitest run --coverage
 {{#endif}}

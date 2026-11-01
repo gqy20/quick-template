@@ -33,6 +33,7 @@ packages = ["src/scaffold"]
 [dependency-groups]
 dev = [
     "mypy>=1.15",
+    "pre-commit>=4.0.0",
     "pytest>=8.0,<9",
     "pytest-bdd>=8.0",
     "ruff>=0.9",
