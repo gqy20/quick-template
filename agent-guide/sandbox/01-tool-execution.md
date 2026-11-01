@@ -4,9 +4,48 @@
 一旦模型被诱导执行危险命令，影响直接落在宿主机上。把工具调用移进沙箱，
 可以把「模型能做什么」交给沙箱策略决定，而不是交给模型自觉。
 
-本文讲这套结构的三个要点和安全预算，不依赖特定供应商实现。
+先用一句话定方向：**能靠权限和沙箱解决的，不要靠 Prompt 约束模型。**
 
-## 结构：模型在宿主，工具在沙箱
+## 优先用 SDK 自带沙箱
+
+Claude Agent SDK 的 `sandbox` 选项提供 OS 级隔离：macOS 用 Seatbelt，
+Linux / WSL2 用 bubblewrap。它约束 **shell 命令及其子进程**，边界由内核
+强制，命令运行期间一直生效。
+
+```yaml
+# config/agent.yaml
+sandbox:
+  enabled: true
+  failIfUnavailable: true      # 依赖缺失时直接失败，不要静默降级
+  allowUnsandboxedCommands: false
+  network:
+    allowedDomains: []         # 留空即禁止出网
+```
+
+```python
+# 或代码里传入
+config = AgentConfig(sandbox={"enabled": True, "failIfUnavailable": True})
+```
+
+必须知道的三条边界：
+
+| 边界 | 含义 |
+|---|---|
+| 只管 shell 命令 | Read / Edit / Write / WebFetch / WebSearch 等内置工具**在沙箱外**，靠 `tools`、`allowed_tools`、`permission_mode` 管 |
+| 默认读权限很宽 | 连 `~/.ssh`、`~/.aws/credentials` 都能读，需要按需收紧 |
+| 失败会降级 | 缺依赖时默认**不沙箱直接跑**，所以 `failIfUnavailable: true` 不能省 |
+
+Linux 还需要 `bubblewrap` 与 `socat`。原生 Windows 不支持，用 WSL2。
+
+**结论：只要开放了 shell 工具，就开沙箱并设 `failIfUnavailable`；内置工具
+继续用允许列表收窄。** 两者互补，不是二选一。
+
+## 需要更强隔离时：外部沙箱
+
+内置沙箱不够时（例如要把文件系统也隔离、或跨语言运行时），才考虑把工具
+执行放到独立沙箱进程里。下面的结构适用于这种场景，代价是组件变多。
+
+### 结构：模型在宿主，工具在沙箱
 
 ```
 宿主                         沙箱
@@ -27,9 +66,9 @@
 | 模型蔓延到其他项目 | 整个磁盘可写 | 只有挂载进去的目录可见 |
 | 模型访问外网 | 继承宿主网络 | 沙箱策略决定是否放行 |
 
-## 策略：按需要给的最小集合
+### 策略：按需要给的最小集合
 
-沙箱的权限由策略声明，通常分两类：
+外部沙箱的权限由策略声明，通常分两类：
 
 ```yaml
 # 文件系统：只读系统路径，可写工作目录与临时目录
@@ -51,7 +90,7 @@ network: []
 判断标准很简单：**沙箱里每多一条网络规则，就多一个模型可以触发外部副作
 用的入口。**
 
-## 坑一：并行工具调用会让「写后读」失败
+### 坑一：并行工具调用会让「写后读」失败
 
 模型可以在一轮里同时给出多个工具调用，LangGraph 会**并发执行**它们。
 

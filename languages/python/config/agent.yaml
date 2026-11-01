@@ -34,6 +34,17 @@ include_partial_messages: false
 include_hook_events: true
 forward_subagent_text: false
 
+# OS 级沙箱，整段透传给 Claude Code；未启用时为 null。
+# 它只约束 shell 命令：Read/Edit/Write/WebFetch 等内置工具仍在沙箱外，
+# 由 tools / allowed_tools / permission_mode 管控。
+# 开放 shell 工具时建议一并开启，并让依赖缺失的机器直接失败。
+sandbox: null
+# sandbox:
+#   enabled: true
+#   failIfUnavailable: true
+#   allowUnsandboxedCommands: false
+#   network: {allowedDomains: []}
+
 logging:
   level: INFO
   jsonl_path: logs/agent/events.jsonl

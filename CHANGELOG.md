@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+### Added
+
+- 生成项目的 `AgentConfig` 增加 `sandbox`，整段透传给 Claude Code 的 OS 级
+  沙箱；`AgentRunner` 增加 `hooks` 与 `can_use_tool` 注入点，用于确定性拦截
+  与人工确认。
+- 新增 `examples/claude_agent_guard.py`：PreToolUse 路径拦截与终端审批，
+  默认离线，需显式 `--run`。
+
+### Changed
+
+- `agent-guide` 的沙箱专题改为先讲 SDK 自带的 OS 级沙箱（只管 shell 命令、
+  默认读权限宽、失败会降级），外部沙箱作为更强隔离的备选；工具专题补充
+  hooks 与 `can_use_tool` 的用法和分工。
+- `agent-guide` 增加两种 Runtime 的能力分布表，标明哪些能力只有一条路径有。
+
 ## [0.4.0] - 2026-11-01
 
 ### Added

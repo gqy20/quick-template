@@ -135,6 +135,9 @@ class AgentConfig(BaseModel):
     include_partial_messages: bool = False
     include_hook_events: bool = True
     forward_subagent_text: bool = False
+    # OS 级沙箱，直接透传给 SDK；只约束 shell 命令，内置工具仍由权限规则管控。
+    # 字段见 Claude Code 的 sandbox 配置：enabled、network、excludedCommands 等。
+    sandbox: dict[str, Any] | None = None
     logging_config: AgentLoggingConfig = Field(
         default_factory=AgentLoggingConfig,
         alias="logging",
@@ -212,6 +215,8 @@ class AgentConfig(BaseModel):
             options["extra_args"] = {
                 "debug-file": str(self.resolve_path(self.logging_config.debug_file)),
             }
+        if self.sandbox is not None:
+            options["sandbox"] = self.sandbox
         return options
 
 
@@ -345,10 +350,20 @@ class AgentRunner:
         schema: dict[str, Any],
         config: AgentConfig | None = None,
         event_logger: AgentEventLogger | None = None,
+        *,
+        hooks: dict[str, Any] | None = None,
+        can_use_tool: Any = None,
     ) -> None:
+        """hooks 与 can_use_tool 是回调，无法写进 YAML，只能从这里注入。
+
+        - `hooks`：拦截或记录工具调用，例如 PreToolUse 检查目标路径。
+        - `can_use_tool`：每次工具调用前回调，返回允许或拒绝，用于人工确认。
+        """
         self.schema = schema
         self.config = config or AgentConfig()
         self.events = event_logger or _create_event_logger(self.config)
+        self.hooks = hooks
+        self.can_use_tool = can_use_tool
 
     async def run(self, prompt: str | RenderedPrompt, output_model: type[T]) -> T:
         """执行查询，返回通过 Pydantic 验证的结构化结果。"""
@@ -368,6 +383,10 @@ class AgentRunner:
                     system_prompt=system_prompt,
                 )
                 option_kwargs["env"] = env
+                if self.hooks is not None:
+                    option_kwargs["hooks"] = self.hooks
+                if self.can_use_tool is not None:
+                    option_kwargs["can_use_tool"] = self.can_use_tool
                 if self.config.logging_config.capture_stderr:
                     option_kwargs["stderr"] = self.events.capture_stderr
                 options = ClaudeAgentOptions(**option_kwargs)

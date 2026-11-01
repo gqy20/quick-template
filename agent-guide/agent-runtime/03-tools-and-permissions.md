@@ -93,3 +93,78 @@ LangGraph 路径下，工具是代码里显式传入的 `BaseTool` 列表，视�
 侧是代码本身。不要指望一份 `agent.yaml` 同时约束两条路径。
 
 详见 [LangGraph 工具循环](../langgraph/03-tool-node-and-rounds.md)。
+
+## 确定性拦截：Hooks
+
+允许列表决定「模型能碰哪些工具」，hooks 决定「这次调用能不能通过」。
+前者是静态范围，后者可以看参数、改参数、直接阻断。
+
+```python
+from claude_agent_sdk import HookMatcher
+
+from your_package.agent import AgentRunner, output_format_schema
+
+
+async def deny_outside_root(payload, tool_use_id, context):
+    target = (payload.get("tool_input") or {}).get("file_path")
+    if isinstance(target, str) and Path(target).resolve().parent != ROOT:
+        return {
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "deny",
+                "permissionDecisionReason": f"工作目录外: {target}",
+            }
+        }
+    return {}
+
+
+runner = AgentRunner(
+    schema=output_format_schema(SummaryOutput),
+    hooks={"PreToolUse": [HookMatcher(matcher=None, hooks=[deny_outside_root])]},
+)
+```
+
+可用的 hook 事件：
+
+| 事件 | 用途 |
+|---|---|
+| `PreToolUse` / `PostToolUse` / `PostToolUseFailure` | 拦截、改参数、记录结果 |
+| `UserPromptSubmit` | 提交前检查或补充上下文 |
+| `PermissionRequest` | 在权限询问发生前介入 |
+| `Stop` / `SubagentStop` / `SubagentStart` | 回合与子代理边界 |
+| `PreCompact` / `Notification` | 压缩前与通知 |
+
+`HookMatcher(matcher=...)` 可按工具名过滤，`None` 表示全部匹配。
+
+**与允许列表的分工**：能用 `allowed_tools` 表达的就用允许列表——静态、可
+审阅、不写代码。只有需要看参数才知道该不该放行时才写 hook。
+
+## 人在回路：can_use_tool
+
+每次工具调用前回调，问人，或者按策略自动决定：
+
+```python
+async def confirm(tool_name, tool_input, context):
+    if tool_name == "Read":
+        return {"behavior": "allow", "updated_input": tool_input}
+    answer = input(f"允许 {tool_name}? [y/N] ").strip().lower()
+    if answer == "y":
+        return {"behavior": "allow", "updated_input": tool_input}
+    return {"behavior": "deny", "message": "用户拒绝", "interrupt": True}
+
+
+runner = AgentRunner(schema=..., can_use_tool=confirm)
+```
+
+| 返回 | 效果 |
+|---|---|
+| `{"behavior": "allow", "updated_input": {...}}` | 放行；可顺手改写参数 |
+| `{"behavior": "deny", "message": "..."}` | 拒绝，模型收到原因 |
+| `{"behavior": "deny", "interrupt": True}` | 拒绝并结束本回合 |
+
+配合 `permission_mode: default` 使用；`dontAsk` 下不会走到这个回调。
+
+**服务端要注意**：回调是 async 的，但真实审批往往跨请求。需要在回调里把
+待审请求存下来、等待外部决定（或直接返回 deny），不要把 HTTP 请求挂在那里。
+
+完整可运行示例见生成项目的 `examples/claude_agent_guard.py`。

@@ -37,6 +37,24 @@ Python 项目代入自己的包名即可；其他项目按自己的模块结构�
 判据：**任务能用"给一段上下文、要一个结构化结果"描述，用 Claude Agent
 SDK；任务需要多步骤、条件分支或中途暂停，用 LangGraph。**
 
+## 能力分布
+
+两条 Runtime 不是同一套能力的两种写法，选型前先看这里：
+
+| 能力 | Claude Agent SDK | LangGraph |
+|---|---|---|
+| 内置工具（Read/Edit/Bash 等） | ✅ | ❌ 只有你传入的 |
+| Skills / MCP | ✅ 原生 | MCP 经 Adapter |
+| 工具调用拦截 | ✅ `hooks`（10 个事件） | ✅ 节点内代码 |
+| 人工审批 | ✅ `can_use_tool` 回调 | ✅ `interrupt()` / `resume()` |
+| 跨进程恢复 | ⚠️ `project` 状态 + SDK `resume` | ✅ checkpoint（可换持久实现） |
+| OS 级沙箱 | ✅ `sandbox` 选项 | ❌ 需自行隔离 |
+| 步骤与分支控制 | ❌ 交给模型 | ✅ 显式 StateGraph |
+| 工具轮次上限 | `max_turns` | `max_tool_rounds` |
+
+一句话：**要"模型自己决定怎么用工具"，选 Claude SDK；要"我决定每一步做什么"，
+选 LangGraph。** 需要审批时两边都有，但实现机制完全不同。
+
 两者共享 Prompt Registry、Pydantic 输出模型和高层日志约定，但运行时不
 可互换：Claude Agent SDK 的执行器没有实现 LangGraph 要求的模型协议
 （`with_structured_output` 与 `bind_tools`），不能当作节点里的模型使用。

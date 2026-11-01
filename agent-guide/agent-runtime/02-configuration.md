@@ -63,6 +63,25 @@ tools: claude_code
 默认 `dontAsk` 配合空工具列表：Agent 只能读取和推理，任何需要批准的
 写操作都会被拒绝。这是模板的默认安全姿态。
 
+## 沙箱
+
+`sandbox` 整段透传给 Claude Code 的 OS 级沙箱，默认 `null`（不启用）。
+
+```yaml
+sandbox:
+  enabled: true
+  failIfUnavailable: true       # 缺依赖时失败，不要静默降级
+  allowUnsandboxedCommands: false
+  network: {allowedDomains: []}
+```
+
+它**只约束 shell 命令**：`Read`、`Edit`、`Write`、`WebFetch` 等内置工具仍在
+沙箱外，靠 `tools`、`allowed_tools` 和 `permission_mode` 管。开放 shell 工具
+时建议一并开启。
+
+Linux 需要 `bubblewrap` 与 `socat`；原生 Windows 不支持。完整的边界说明见
+[沙箱专题](../sandbox/01-tool-execution.md)。
+
 ## MCP 与 Skills
 
 | 键 | 默认 | 说明 |

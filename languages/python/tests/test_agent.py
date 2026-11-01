@@ -459,3 +459,39 @@ class TestAgentErrors:
 
         translated = _translate_exception(ValueError("x"))
         assert isinstance(translated, AgentError)
+
+
+class TestControlHooks:
+    """沙箱配置与运行时注入点。"""
+
+    def test_sandbox_is_absent_by_default(self):
+        from {{ package_name }}.agent import AgentConfig
+
+        assert AgentConfig().sandbox is None
+        assert "sandbox" not in AgentConfig().to_option_kwargs({})
+
+    def test_sandbox_passes_through(self):
+        from {{ package_name }}.agent import AgentConfig
+
+        sandbox = {"enabled": True, "failIfUnavailable": True}
+        config = AgentConfig(sandbox=sandbox)
+
+        assert config.to_option_kwargs({})["sandbox"] == sandbox
+
+    def test_runner_accepts_hooks_and_permission_callback(self):
+        from {{ package_name }}.agent import AgentRunner, output_format_schema
+
+        class Dummy(BaseModel):
+            value: str
+
+        async def confirm(tool_name, tool_input, context):
+            return {"behavior": "allow", "updated_input": tool_input}
+
+        runner = AgentRunner(
+            schema=output_format_schema(Dummy),
+            hooks={"PreToolUse": []},
+            can_use_tool=confirm,
+        )
+
+        assert runner.hooks == {"PreToolUse": []}
+        assert runner.can_use_tool is confirm
