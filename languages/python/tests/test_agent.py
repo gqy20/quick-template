@@ -395,3 +395,67 @@ class TestPredefinedSchemas:
         assert "score" in props
         assert "issues" in props
         assert "overall" in props
+
+
+class TestAgentErrors:
+    """失败分类：调用方按类型决定补装、重试还是放弃。"""
+
+    def test_hierarchy(self):
+        from {{ package_name }}.agent import (
+            AgentBudgetExceededError,
+            AgentConnectionError,
+            AgentError,
+            AgentOutputError,
+            AgentProcessError,
+            AgentRateLimitError,
+        )
+
+        for error_type in (
+            AgentConnectionError,
+            AgentProcessError,
+            AgentBudgetExceededError,
+            AgentRateLimitError,
+            AgentOutputError,
+        ):
+            assert issubclass(error_type, AgentError)
+            assert issubclass(error_type, RuntimeError)
+
+    def test_no_result_raises_output_error(self):
+        from {{ package_name }}.agent import AgentOutputError, _raise_on_terminal_result
+
+        with pytest.raises(AgentOutputError):
+            _raise_on_terminal_result(None)
+
+    def test_budget_stop_reason(self):
+        from {{ package_name }}.agent import (
+            AgentBudgetExceededError,
+            _raise_on_terminal_result,
+        )
+
+        class Result:
+            stop_reason = "max_turns_reached"
+            num_turns = 5
+            total_cost_usd = 0.02
+            is_error = False
+
+        with pytest.raises(AgentBudgetExceededError) as excinfo:
+            _raise_on_terminal_result(Result())
+        assert excinfo.value.num_turns == 5
+        assert excinfo.value.stop_reason == "max_turns_reached"
+
+    def test_error_result_raises_process_error(self):
+        from {{ package_name }}.agent import AgentProcessError, _raise_on_terminal_result
+
+        class Result:
+            stop_reason = None
+            is_error = True
+            errors = "boom"
+
+        with pytest.raises(AgentProcessError):
+            _raise_on_terminal_result(Result())
+
+    def test_translate_without_sdk_returns_base_error(self):
+        from {{ package_name }}.agent import AgentError, _translate_exception
+
+        translated = _translate_exception(ValueError("x"))
+        assert isinstance(translated, AgentError)

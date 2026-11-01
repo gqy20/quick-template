@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Literal, TypeVar
+from typing import Any, Literal, NoReturn, TypeVar
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
@@ -37,7 +37,61 @@ def _default_system_prompt() -> dict[str, str]:
     }
 
 
-class AgentOutputError(RuntimeError):
+class AgentError(RuntimeError):
+    """Agent 执行失败的基类，调用方按子类决定重试、补装还是放弃。"""
+
+
+class AgentConnectionError(AgentError):
+    """Claude Code CLI 未安装或无法连接。"""
+
+
+class AgentProcessError(AgentError):
+    """子进程失败或协议解析错误。"""
+
+    def __init__(
+        self,
+        message: str,
+        exit_code: int | None = None,
+        stderr: str | None = None,
+    ) -> None:
+        self.exit_code = exit_code
+        self.stderr = stderr
+        super().__init__(message)
+
+
+class AgentBudgetExceededError(AgentError):
+    """达到 max_turns 或 max_budget_usd 上限。"""
+
+    def __init__(
+        self,
+        message: str,
+        stop_reason: str = "",
+        num_turns: int | None = None,
+        total_cost_usd: float | None = None,
+    ) -> None:
+        self.stop_reason = stop_reason
+        self.num_turns = num_turns
+        self.total_cost_usd = total_cost_usd
+        super().__init__(message)
+
+
+class AgentRateLimitError(AgentError):
+    """触发 API 限流，等待后重试或改用其他模型。"""
+
+    def __init__(
+        self,
+        message: str,
+        rate_limit_type: str = "",
+        resets_at: int | None = None,
+        utilization: float | None = None,
+    ) -> None:
+        self.rate_limit_type = rate_limit_type
+        self.resets_at = resets_at
+        self.utilization = utilization
+        super().__init__(message)
+
+
+class AgentOutputError(AgentError):
     """Agent 未返回符合 Schema 的结构化结果。"""
 
 
@@ -215,6 +269,74 @@ def _extract_raw_dict(message: object) -> dict[str, Any] | None:
     return None
 
 
+_BUDGET_STOP_REASONS = frozenset({"max_turns_reached", "error_max_budget_usd"})
+
+
+def _raise_on_rate_limit(message: object) -> None:
+    """限流被拒时抛出可重试的错误。"""
+    try:
+        from claude_agent_sdk import RateLimitEvent
+    except ImportError:
+        return
+    if not isinstance(message, RateLimitEvent):
+        return
+    info = message.rate_limit_info
+    if getattr(info, "status", "") != "rejected":
+        return
+    raise AgentRateLimitError(
+        f"限流拒绝: {getattr(info, 'rate_limit_type', '')}",
+        rate_limit_type=str(getattr(info, "rate_limit_type", "")),
+        resets_at=getattr(info, "resets_at", None),
+        utilization=getattr(info, "utilization", None),
+    )
+
+
+def _raise_on_terminal_result(result: object | None) -> NoReturn:
+    """查询结束时按终止原因分类失败，未得到结构化结果也在这里报出。"""
+    if result is None:
+        raise AgentOutputError("Agent 未返回符合 Schema 的结构化结果")
+
+    stop_reason = str(getattr(result, "stop_reason", "") or "")
+    if stop_reason in _BUDGET_STOP_REASONS:
+        raise AgentBudgetExceededError(
+            f"查询终止: {stop_reason}",
+            stop_reason=stop_reason,
+            num_turns=getattr(result, "num_turns", None),
+            total_cost_usd=getattr(result, "total_cost_usd", None),
+        )
+    if getattr(result, "is_error", False):
+        errors = getattr(result, "errors", None) or getattr(result, "result", None)
+        raise AgentProcessError(f"查询返回错误: {errors}")
+    raise AgentOutputError("Agent 未返回符合 Schema 的结构化结果")
+
+
+def _translate_exception(error: Exception) -> AgentError:
+    """把 SDK 异常映射成调用方能够区分的错误类型。"""
+    try:
+        from claude_agent_sdk import (
+            CLIConnectionError,
+            CLIJSONDecodeError,
+            CLINotFoundError,
+            ProcessError,
+        )
+    except ImportError:
+        return AgentError(f"SDK 错误: {error}")
+
+    if isinstance(error, CLINotFoundError):
+        return AgentConnectionError(f"Claude Code CLI 未找到: {error}")
+    if isinstance(error, CLIConnectionError):
+        return AgentConnectionError(f"无法连接 Claude Code: {error}")
+    if isinstance(error, ProcessError):
+        return AgentProcessError(
+            str(error),
+            exit_code=getattr(error, "exit_code", None),
+            stderr=getattr(error, "stderr", None),
+        )
+    if isinstance(error, CLIJSONDecodeError):
+        return AgentProcessError(f"协议解析错误: {error}")
+    return AgentError(f"SDK 错误: {error}")
+
+
 class AgentRunner:
     """基于 query() 的单次、无状态、结构化 Agent 执行器。"""
 
@@ -251,25 +373,34 @@ class AgentRunner:
                 options = ClaudeAgentOptions(**option_kwargs)
                 self._record_start(prompt_text, output_model, prompt_fields)
                 result: T | None = None
+                last_result: object | None = None
                 async for message in query(prompt=prompt_text, options=options):
                     self.events.observe(message)
                     _render_message(message)
+                    _raise_on_rate_limit(message)
+                    if getattr(message, "subtype", None) in ("success", "error"):
+                        last_result = message
                     parsed = parse_with_model(message, output_model)
                     if parsed is not None:
                         result = parsed
                 if result is not None:
                     return result
-        except Exception as error:
-            self.events.emit(
-                "run_failed",
-                level=40,
-                error_type=type(error).__name__,
-                error=redact_text(str(error))[:1000],
-            )
+                _raise_on_terminal_result(last_result)
+        except AgentError as error:
+            self._record_failure(error)
             raise
+        except Exception as error:
+            translated = _translate_exception(error)
+            self._record_failure(translated)
+            raise translated from error
 
-        self.events.emit("run_failed", level=40, error_type="AgentOutputError")
-        raise AgentOutputError("Agent 未返回符合 Schema 的结构化结果")
+    def _record_failure(self, error: BaseException) -> None:
+        self.events.emit(
+            "run_failed",
+            level=40,
+            error_type=type(error).__name__,
+            error=redact_text(str(error))[:1000],
+        )
 
     def _record_start(
         self,

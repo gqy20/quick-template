@@ -39,8 +39,34 @@ asyncio.run(main())
 生成 JSON Schema、执行查询并校验结果。
 
 - 返回值是 `SentimentOutput` 实例，不是 dict。
-- 模型未返回符合 Schema 的结果时抛 `AgentOutputError`。
-- 需要 `ANTHROPIC_API_KEY`（见 `.env.example`）。
+- 失败按类型抛出，见下节。
+- 需要 `ANTHROPIC_API_KEY`。
+
+## 错误处理
+
+所有失败都继承 `AgentError`（本身是 `RuntimeError`），按处理方式区分：
+
+| 异常 | 触发 | 建议处理 |
+|---|---|---|
+| `AgentConnectionError` | CLI 未安装或连不上 | 补装 `claude-agent-sdk` 或检查 CLI |
+| `AgentProcessError` | 子进程失败、协议解析错误 | 读 `exit_code` / `stderr` 后重试 |
+| `AgentBudgetExceededError` | 达到 `max_turns` 或 `max_budget_usd` | 调整上限或拆分任务 |
+| `AgentRateLimitError` | API 限流被拒 | 按 `resets_at` 等待后重试 |
+| `AgentOutputError` | 没拿到符合 Schema 的结果 | 改 Prompt 或放宽输出模型 |
+
+```python
+from your_package.agent import AgentBudgetExceededError, AgentError, structured_query
+
+try:
+    result = await structured_query(prompt, SentimentOutput)
+except AgentBudgetExceededError as error:
+    print(f"超出上限: turns={error.num_turns}")
+except AgentError as error:
+    print(f"执行失败: {type(error).__name__}: {error}")
+```
+
+SDK 自己的异常（`CLINotFoundError`、`ProcessError`、`CLIJSONDecodeError` 等）
+会被映射成上面的类型，原始异常保留在 `__cause__`。
 
 ## 三种调用方式
 

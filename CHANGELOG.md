@@ -11,6 +11,10 @@
   驱动的 `DESIGN.md`。
 - 新增模板根目录的 `.template.yml` 分发清单，整文件条件不再靠文件首尾的
   `{{#if}}` 包裹；段落级条件仍用行内标记。
+- 生成项目的 Agent 失败按类型区分：`AgentError` 基类下新增
+  `AgentConnectionError`、`AgentProcessError`、`AgentBudgetExceededError`、
+  `AgentRateLimitError`，SDK 异常会映射为由 `__cause__` 保留原始错误的
+  这些类型。
 - 新增 Claude Agent SDK 的结构化 JSONL 日志、MCP、Skills 与项目配置。
 - 新增版本化 YAML Prompt Registry 和 ephemeral/project/default Session 状态隔离。
 - 新增 LangGraph 1.2.11 结构化工作流、离线 Fake Model 测试和显式运行示例。
@@ -44,6 +48,12 @@
   引用同步按条件渲染。
 - `CHANGELOG.md` 与 `PRODUCT.md` 移入 `docs/`，根目录只保留每次工作都要
   读的契约。验收证据归入编号专题，取消独立的 design-qa 路径。
+### Removed
+
+- 删除仓库根的 `examples/claude_agent.py` 与 `examples/prompts/`。它是模板化
+  之前的独立 Claude Agent SDK 封装原型，没有测试、没有文档引用，版本也停在
+  `0.2.148`；其中可迁移的错误分类已并入模板的 `agent.py`。
+
 
 ## [0.3.0] - 2026-08-31
 
