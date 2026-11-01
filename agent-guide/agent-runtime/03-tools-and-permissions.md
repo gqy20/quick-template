@@ -91,4 +91,4 @@ LangGraph 路径下，工具是代码里显式传入的 `BaseTool` 列表，视�
 两种模型的差别在于**授权发生在哪**：SDK 侧是运行时权限系统，LangGraph
 侧是代码本身。不要指望一份 `agent.yaml` 同时约束两条路径。
 
-详见 [LangGraph 工具循环](../02-langgraph/03-tool-node-and-rounds.md)。
+详见 [LangGraph 工具循环](../langgraph/03-tool-node-and-rounds.md)。

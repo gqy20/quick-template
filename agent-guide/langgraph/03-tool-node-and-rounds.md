@@ -110,7 +110,7 @@ runtime = await LangGraphReviewRuntime.with_anthropic_and_mcp()
 本地 `BaseTool` 传进去就能用，视为代码授权。MCP 工具即使配置了连接，
 `mcp_allowed_tools: []` 时也不会加载 —— 声明和授权分离。
 
-详见 [MCP 与 Skills](../01-agent-runtime/04-mcp-and-skills.md)。
+详见 [MCP 与 Skills](../agent-runtime/04-mcp-and-skills.md)。
 
 ## 追踪脱敏
 

@@ -8,7 +8,7 @@ Python 项目代入自己的包名即可；其他项目按自己的模块结构�
 
 ## 阅读顺序
 
-1. [Claude Agent SDK 快速开始](01-agent-runtime/01-quickstart.md) —— 一次
+1. [Claude Agent SDK 快速开始](agent-runtime/01-quickstart.md) —— 一次
    结构化查询的最小完整示例。
 2. [两种 Runtime 怎么选](#两种-runtime-怎么选) —— 决定用哪条路。
 3. 按需查阅对应的配置、工具、Prompt、日志专题。
@@ -17,11 +17,11 @@ Python 项目代入自己的包名即可；其他项目按自己的模块结构�
 
 | 专题 | 内容 |
 |---|---|
-| [01-agent-runtime](01-agent-runtime/) | Claude Agent SDK：配置、工具权限、MCP 与 Skills、Session |
-| [02-langgraph](02-langgraph/) | LangGraph：StateGraph、工具循环、中断恢复 |
-| [03-prompts](03-prompts/) | Prompt Registry：变量契约、版本、渲染 |
-| [04-structured-output](04-structured-output/) | Pydantic 输出模型与校验 |
-| [05-logging](05-logging/) | JSONL 事件日志与脱敏 |
+| [agent-runtime](agent-runtime/) | Claude Agent SDK：配置、工具权限、MCP 与 Skills、Session |
+| [langgraph](langgraph/) | LangGraph：StateGraph、工具循环、中断恢复 |
+| [prompts](prompts/) | Prompt Registry：变量契约、版本、渲染 |
+| [structured-output](structured-output/) | Pydantic 输出模型与校验 |
+| [logging](logging/) | JSONL 事件日志与脱敏 |
 
 ## 两种 Runtime 怎么选
 

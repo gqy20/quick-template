@@ -1,15 +1,15 @@
 # Pages Redesign QA — 2026-08-31
 
+证据文件是写作当天的本机临时产物，未随仓库分发。下文只保留文件名与用途，
+路径随机器不同。
+
 ## Comparison Target
 
-- Source visual truth:
-  `/home/qy113/.codex/generated_images/01a05692-29e4-71e3-a9c9-0a65d0f85836/exec-8a997c94-8390-4564-a3ac-e6b0f872137d.png`
-- Browser-rendered implementation:
-  `/home/qy113/workspace/tmp/quick-template-pages-implementation-20260831/08-desktop-refined.png`
-- Full-view comparison:
-  `/home/qy113/workspace/tmp/quick-template-pages-implementation-20260831/qa-full-comparison-refined.png`
-- Focused hero comparison:
-  `/home/qy113/workspace/tmp/quick-template-pages-implementation-20260831/qa-hero-comparison.png`
+- Source visual truth: `exec-8a997c94-8390-4564-a3ac-e6b0f872137d.png`
+  （本机生成的设计参照图）
+- Browser-rendered implementation: `08-desktop-refined.png`
+- Full-view comparison: `qa-full-comparison-refined.png`
+- Focused hero comparison: `qa-hero-comparison.png`
 - State: light theme, default landing page, no browser chrome.
 - Reference pixels: 906 × 1736.
 - Implementation: 1440 × 3404 full-page capture at a 1440 × 900 CSS viewport,
@@ -19,16 +19,11 @@
 
 ## Required Viewports
 
-- 390 × 844:
-  `/home/qy113/workspace/tmp/quick-template-pages-implementation-20260831/09-mobile-refined.png`
-- 768 × 1024:
-  `/home/qy113/workspace/tmp/quick-template-pages-implementation-20260831/10-tablet-refined.png`
-- 1280 × 800:
-  `/home/qy113/workspace/tmp/quick-template-pages-implementation-20260831/11-laptop-refined.png`
-- 1440 × 900:
-  `/home/qy113/workspace/tmp/quick-template-pages-implementation-20260831/08-desktop-refined.png`
-- 1920 × 1080:
-  `/home/qy113/workspace/tmp/quick-template-pages-implementation-20260831/12-wide-refined.png`
+- 390 × 844: `09-mobile-refined.png`
+- 768 × 1024: `10-tablet-refined.png`
+- 1280 × 800: `11-laptop-refined.png`
+- 1440 × 900: `08-desktop-refined.png`
+- 1920 × 1080: `12-wide-refined.png`
 
 The page has no document-level horizontal overflow at 320px or 390px. The language
 matrix and long commands use explicit local scroll containers. A 720px effective

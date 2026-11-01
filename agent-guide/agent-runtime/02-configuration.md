@@ -130,7 +130,7 @@ Prompt 文本独立维护在 `prompt_dir`，配置只声明目录和默认 id。
 
 `debug_file` 指向的文件可能含完整上下文，默认关闭且不得提交。
 
-日志内容与脱敏规则见 [日志专题](../05-logging/01-events.md)。
+日志内容与脱敏规则见 [日志专题](../logging/01-events.md)。
 
 ## system_prompt
 

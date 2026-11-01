@@ -28,6 +28,9 @@ repos:
     hooks:
       - id: mypy
         name: mypy
+        # 用项目自己的虚拟环境并装上可选 extra：独立 hook 环境的 Python
+        # 版本和依赖集合与项目不一致，会让 `# type: ignore` 判定失准。
+        # 首次运行需要解析 extra 依赖，之后复用缓存。
         entry: uv run --all-extras mypy src/{{ package_name }}
         language: system
         types: [python]

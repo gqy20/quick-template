@@ -66,7 +66,7 @@ result = await structured_query(prompt, SentimentOutput)
 
 传入 `RenderedPrompt` 时，其 `instructions` 会作为 Claude Code preset 的
 system prompt 追加，Prompt 的 id、版本和摘要会写入运行日志。
-详见 [Prompt 专题](../03-prompts/01-create-prompt.md)。
+详见 [Prompt 专题](../prompts/01-create-prompt.md)。
 
 ## 需要更多控制时
 
