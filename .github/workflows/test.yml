@@ -106,6 +106,12 @@ jobs:
         with:
           node-version: "24"
 
+      - name: 安装 pnpm
+        if: matrix.language == 'typescript'
+        uses: pnpm/action-setup@v4
+        with:
+          version: "10.34.9"
+
       - name: 使用 scaffold 引擎生成项目
         id: generate
         run: |
