@@ -11,7 +11,7 @@ from scaffold.variables import ProjectVars
 TEMPLATE_ROOT = Path(__file__).resolve().parent
 
 
-def test_generate(language: str, add_api: bool = True) -> Path:
+def test_generate(language: str, add_api: bool = True, has_frontend: bool = False) -> Path:
     """使用 scaffold 引擎生成项目。"""
     extra = {
         "project_name": "Test Project",
@@ -21,6 +21,7 @@ def test_generate(language: str, add_api: bool = True) -> Path:
         "version": "0.1.0",
         "license": "MIT",
         "line_length": 88,
+        "has_frontend": has_frontend,
     }
     if language == "python":
         extra["python_version"] = "3.13"

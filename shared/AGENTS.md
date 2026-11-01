@@ -55,8 +55,8 @@
 
 - 用户当前可用能力、安装与运行：`README.md`
 - Agent 执行规则：本文件
-- 前端视觉与交互契约：`DESIGN.md`
-- 版本变化：`docs/CHANGELOG.md`
+{{#if has_frontend}}- 前端视觉与交互契约：`DESIGN.md`
+{{#endif}}- 版本变化：`docs/CHANGELOG.md`
 - 产品范围与边界：`docs/PRODUCT.md`
 - 专题文档索引与命名规范：`docs/README.md`
 - 工程命令：`Makefile`
@@ -144,6 +144,7 @@ push 不等于 Tag、Release、部署或对外发送消息。
 {{#elif language == 'typescript'}}- 保持 ESM 与严格类型；不得用 `any` 或无说明断言绕过契约。
 - 浏览器与服务端边界显式，禁止把 Secret 打进客户端 bundle。
 {{#endif}}
+{{#if has_frontend}}
 
 ## 前端与设计契约
 
@@ -156,6 +157,7 @@ push 不等于 Tag、Release、部署或对外发送消息。
 - 不在组件中散写与 Token 重复的静态视觉值。
 - 修改视觉方向、Token 或跨页面组件规则时同步 `DESIGN.md`；逐次截图、
   差异与发现写入 `docs/` 下对应专题的独立文档，不得污染稳定规范。
+{{#endif}}
 
 ## 工作区与 Git 安全
 
@@ -181,8 +183,8 @@ push 不等于 Tag、Release、部署或对外发送消息。
 2. 局部逻辑：相关 lint / 类型检查和定向测试。
 3. 公共契约或跨模块修改：`make all`。
 4. 构建、依赖或发布改动：安装、构建和包级 smoke。
-5. 前端改动：目标视口截图与交互 / 可访问性检查。
-6. 外部系统：仅在明确授权后运行真实集成测试。
+{{#if has_frontend}}5. 前端改动：目标视口截图与交互 / 可访问性检查。
+{{#endif}}6. 外部系统：仅在明确授权后运行真实集成测试。
 
 通用入口是 `make check`、`make typecheck`、`make test`、`make all`；定向验证
 只覆盖本次改动的路径。
@@ -240,8 +242,9 @@ pnpm exec vitest run <relevant-tests>
 - 标记把 Roadmap、Mock、AI 候选或未验证状态写成当前事实。
 - 标记缺少 Schema 校验、超时、错误传播、幂等或负向测试的边界变更。
 - 标记用户改动被覆盖、无关文件被格式化或 Secret / 产物进入提交。
-- 标记违反 `DESIGN.md` 的视觉值、交互、响应式或无障碍实现，并给出
+{{#if has_frontend}}- 标记违反 `DESIGN.md` 的视觉值、交互、响应式或无障碍实现，并给出
   对应 Token、原生组件或安全路径。
+{{#endif}}
 - 格式问题优先交给 CI；审查意见应说明行为风险和可行修复路径。
 
 ## 完成标准
@@ -252,6 +255,6 @@ pnpm exec vitest run <relevant-tests>
 - 没有无证据扩大范围、依赖、权限或外部状态；
 - 输入、输出、错误和副作用边界与改动规模匹配；
 - 最小相关验证通过，或明确说明未运行及原因；
-- 相关 README、CHANGELOG、DESIGN 或架构文档已同步；
+- 相关 README、CHANGELOG{{#if has_frontend}}、DESIGN{{#endif}} 或架构文档已同步；
 - 用户已有修改未被破坏；
 - 最终回复说明实际改动、验证、未验证项、产物位置和重要剩余风险。

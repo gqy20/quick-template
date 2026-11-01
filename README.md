@@ -39,7 +39,13 @@ quick-template --language golang --no-add-api --output-dir ./my-go-app
 
 # TypeScript + Hono
 quick-template --language typescript --output-dir ./my-ts-app
+
+# 附加前端设计基线（DESIGN.md）
+quick-template --language python --with-frontend --output-dir ./my-web-app
 ```
+
+`DESIGN.md` 是一份 300 行的前端视觉与交互契约，只在 `--with-frontend`
+时生成；纯后端或 CLI 项目不需要它。
 
 可通过 JSON 或 YAML 文件覆盖项目变量：
 

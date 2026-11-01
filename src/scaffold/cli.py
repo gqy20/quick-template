@@ -32,6 +32,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--force", action="store_true", help="overwrite files in a non-empty output")
     p.add_argument("--add-api", action="store_true", default=True)
     p.add_argument("--no-add-api", dest="add_api", action="store_false")
+    p.add_argument(
+        "--with-frontend",
+        action="store_true",
+        help="generate the frontend design baseline (DESIGN.md)",
+    )
     return p.parse_args(argv)
 
 
@@ -40,9 +45,11 @@ def build_vars(
     language: str,
     add_api: bool,
     output_dir: Path | None,
+    has_frontend: bool = False,
 ) -> dict:
     """构建完整变量字典：默认值 → 数据文件 → CLI 覆盖 → 派生变量。"""
-    return ProjectVars.build(data_file, language, add_api).to_dict()
+    extra = {"has_frontend": has_frontend}
+    return ProjectVars.build(data_file, language, add_api, extra).to_dict()
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -52,6 +59,7 @@ def main(argv: list[str] | None = None) -> None:
         args.language,
         args.add_api,
         args.output_dir,
+        args.with_frontend,
     )
 
     output = args.output_dir or Path.cwd() / vars_dict["project_slug"]

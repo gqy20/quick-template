@@ -42,6 +42,17 @@ class TestParseArgs:
         args = parse_args(["--force"])
         assert args.force is True
 
+    def test_frontend_flag_defaults_off(self):
+        assert parse_args([]).with_frontend is False
+
+    def test_with_frontend_flag(self):
+        args = parse_args(["--with-frontend"])
+        assert args.with_frontend is True
+
+    def test_build_vars_carries_frontend_flag(self):
+        assert build_vars(None, "python", True, None)["has_frontend"] is False
+        assert build_vars(None, "python", True, None, True)["has_frontend"] is True
+
     def test_version_flag(self, capsys):
         with pytest.raises(SystemExit, match="0"):
             parse_args(["--version"])

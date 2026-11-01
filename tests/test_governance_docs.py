@@ -13,8 +13,8 @@ from scaffold.variables import ProjectVars
 TEMPLATE_ROOT = Path(__file__).resolve().parents[1]
 
 
-def generate_template(tmp_path, language, add_api):
-    output = tmp_path / f"{language}-{add_api}"
+def generate_template(tmp_path, language, add_api, has_frontend=False):
+    output = tmp_path / f"{language}-{add_api}-{has_frontend}"
     variables = ProjectVars.build(
         None,
         language,
@@ -23,6 +23,7 @@ def generate_template(tmp_path, language, add_api):
             "project_name": "Test Project",
             "author_name": "Test Author",
             "repository_username": "test-author",
+            "has_frontend": has_frontend,
         },
     ).to_dict()
     copy_template_dir(TEMPLATE_ROOT / "shared", output, variables)
@@ -59,7 +60,7 @@ def test_generated_agent_contract_is_complete(tmp_path, language, add_api):
 
 
 def test_generated_design_contract_has_semantic_sections(tmp_path):
-    output = generate_template(tmp_path, "typescript", True)
+    output = generate_template(tmp_path, "typescript", True, has_frontend=True)
     content = (output / "DESIGN.md").read_text()
 
     assert "# Design System: Test Project" in content
@@ -90,7 +91,7 @@ def test_generated_claude_instructions_route_to_canonical_contracts(tmp_path):
 
 def test_generated_docs_follow_directory_convention(tmp_path):
     """docs/ 承载按需查阅的文档，根目录只保留每次都要读的契约。"""
-    output = generate_template(tmp_path, "typescript", True)
+    output = generate_template(tmp_path, "typescript", True, has_frontend=True)
 
     assert (output / "AGENTS.md").is_file()
     assert (output / "DESIGN.md").is_file()
@@ -114,6 +115,20 @@ def test_generated_docs_follow_directory_convention(tmp_path):
     assert "01-product" in index
     assert "02-architecture" in index
     assert "03-operations" in index
+
+
+@pytest.mark.parametrize("language", ["python", "golang", "typescript"])
+def test_design_baseline_only_with_frontend(tmp_path, language):
+    """没有前端时不生成 DESIGN.md，也不在契约里引用它。"""
+    without = generate_template(tmp_path / "off", language, True, has_frontend=False)
+    assert not (without / "DESIGN.md").exists()
+    for name in ("AGENTS.md", "README.md"):
+        assert "DESIGN.md" not in (without / name).read_text(), name
+    assert "DESIGN.md" not in (without / "docs" / "README.md").read_text()
+
+    with_ui = generate_template(tmp_path / "on", language, True, has_frontend=True)
+    assert (with_ui / "DESIGN.md").is_file()
+    assert "DESIGN.md" in (with_ui / "AGENTS.md").read_text()
 
 
 def test_generated_docs_have_no_design_qa_special_path(tmp_path):

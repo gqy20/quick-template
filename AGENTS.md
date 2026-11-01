@@ -34,6 +34,7 @@ quick-template 的交付物不是三套 Hello World，而是一个可安装、�
 - `template/` 已废弃，不得恢复第二套渲染树。
 - wheel 必须包含全部模板资源；源码可运行但 wheel 不可用属于发布阻断。
 - Python、Go、TypeScript 的 API / 非 API 六种组合都是受支持契约。
+  `--with-frontend` 是附加维度，只决定是否生成 `DESIGN.md` 及其引用。
 - 语言模板默认包管理器：Python 用 uv，TypeScript 用 pnpm。模板、CI 和文档
   必须保持一致。
 - 模板语法：`{{var}}`、`{{#if}}`/`{{#elif}}`/`{{#else}}`/`{{#endif}}`；

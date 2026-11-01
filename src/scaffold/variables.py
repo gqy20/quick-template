@@ -20,6 +20,7 @@ _DEFAULTS: dict[str, Any] = {
     "go_version": "1.27",
     "node_version": "24",
     "add_api": True,
+    "has_frontend": False,
     "line_length": 88,
     "repository_provider": "https://github.com",
 }
@@ -41,6 +42,7 @@ class ProjectVars(BaseModel):
     go_version: str = "1.27"
     node_version: str = "24"
     add_api: bool = True
+    has_frontend: bool = False
     line_length: int = Field(default=88, ge=79, le=120)
     repository_provider: str = "https://github.com"
 

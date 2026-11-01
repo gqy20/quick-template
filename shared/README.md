@@ -183,8 +183,8 @@ make test
 ├── docs/                # 专题文档：产品边界、版本变化、专题索引
 ├── Makefile
 ├── AGENTS.md
-├── DESIGN.md
-└── README.md
+{{#if has_frontend}}├── DESIGN.md
+{{#endif}}└── README.md
 ```
 
 ## 常用命令
