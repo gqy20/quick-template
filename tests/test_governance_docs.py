@@ -172,9 +172,9 @@ def test_python_agent_uses_native_mcp_skills_and_logging_config(tmp_path):
     assert config["logging"]["jsonl_path"] == "logs/agent/events.jsonl"
     assert config["runtime_state"]["mode"] == "ephemeral"
     assert mcp == {"mcpServers": {}}
-    assert "claude-agent-sdk==0.2.148" in pyproject
-    assert "langgraph==1.2.11" in pyproject
-    assert "langchain-anthropic==1.7.0" in pyproject
+    assert "claude-agent-sdk==0.2.176" in pyproject
+    assert "langgraph==1.2.19" in pyproject
+    assert "langchain-anthropic==1.7.7" in pyproject
     assert "langchain-mcp-adapters==0.3.2" in pyproject
     assert (output / "src" / "test_project" / "agent_log.py").is_file()
     assert (output / ".claude" / "skills" / "README.md").is_file()

@@ -60,7 +60,7 @@ jobs:
       - name: 运行 golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.13.2
+          version: v2.15.0
 
       - name: 运行 go vet
         run: go vet ./...

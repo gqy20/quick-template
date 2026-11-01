@@ -36,10 +36,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-agent = ["claude-agent-sdk==0.2.148"]
+agent = ["claude-agent-sdk==0.2.176"]
 agent-langgraph = [
-    "langgraph==1.2.11",
-    "langchain-anthropic==1.7.0",
+    "langgraph==1.2.19",
+    "langchain-anthropic==1.7.7",
     "langchain-mcp-adapters==0.3.2",
 ]
 

@@ -110,9 +110,9 @@ CI 会验证 Python、Go、TypeScript 各自启用和关闭 API 的 6 种组合�
 
 Python 模板提供两种可选、可对照的 Agent Runtime：
 
-- Claude Agent SDK：`claude-agent-sdk==0.2.148`，使用原生 Agent loop、
+- Claude Agent SDK：`claude-agent-sdk==0.2.176`，使用原生 Agent loop、
   MCP、Skills 与权限。
-- LangGraph：`langgraph==1.2.11` + `langchain-anthropic==1.7.0` +
+- LangGraph：`langgraph==1.2.19` + `langchain-anthropic==1.7.7` +
   `langchain-mcp-adapters==0.3.2`，使用显式 StateGraph、原生 `ToolNode`、
   校验重试和 checkpoint。
 

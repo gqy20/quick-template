@@ -22,9 +22,18 @@
 ### Changed
 
 - `CLAUDE.md` 不再复述规则，改为只用 `@` 引入 `AGENTS.md`。
-- Claude Agent SDK 升级并固定到 `0.2.148`，普通应用启动不再自动调用模型。
+- Claude Agent SDK 固定到 `0.2.176`，LangGraph 到 `1.2.19`、
+  `langchain-anthropic` 到 `1.7.7`；普通应用启动不再自动调用模型。
 - TypeScript 模板默认包管理器由 npm 改为 pnpm，CI 与 Makefile 同步改用
-  `pnpm exec`；Biome 固定到 `2.5.11` 并限定只处理 TS/JS/JSON 文件。
+  `pnpm exec`；Biome 升到 `2.6.4` 并限定只处理 TS/JS/JSON 文件。
+- TypeScript 模板的 Vitest 与覆盖率插件升到 5、tsup 升到 9；构建改为
+  显式入口与 ESM 输出，修正 `main` 指向 `dist/index.js` 但产物是
+  `dist/index.cjs` 的不一致。
+- Go 模板的 Gin 升到 `v1.12.0`、cors 到 `v1.7.10`；CI 的 golangci-lint
+  升到 `v2.15.0`。
+- 根仓库依赖刷新：mypy `2.4.1`、ruff `0.17.3`、pytest `9.2.0`、
+  pytest-bdd `9.0.1`、pydantic `2.14.2`；ruff pre-commit hook 同步到
+  `v0.17.3`。
 - 模板引擎不再为独占一行的条件标记输出多余空行。
 - 生成项目的 `permission_mode` 补上 SDK 支持的 `auto`，并修正各模式的
   说明：`dontAsk` 是自动拒绝而非直接失败，`plan` 允许只读命令，

@@ -6,7 +6,7 @@
   "main": "./dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsup",
+    "build": "tsup src/index.ts --format esm",
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "biome check .",
@@ -21,12 +21,12 @@
     "hono": "^4.7.0"
   }{{#else}}{}{{#endif}},
   "devDependencies": {
-    "@biomejs/biome": "2.5.11",
+    "@biomejs/biome": "2.6.4",
     "@types/node": "^24.0.0",
-    "@vitest/coverage-v8": "^4.1.11",
-    "tsup": "^8.5.0",
-    "tsx": "^4.21.0",
+    "@vitest/coverage-v8": "^5.0.5",
+    "tsup": "^9.0.0",
+    "tsx": "^4.23.15",
     "typescript": "^7.0.2",
-    "vitest": "^4.1.11"
+    "vitest": "^5.0.5"
   }
 }
