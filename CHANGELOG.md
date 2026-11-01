@@ -11,6 +11,10 @@
   驱动的 `DESIGN.md`。
 - 新增模板根目录的 `.template.yml` 分发清单，整文件条件不再靠文件首尾的
   `{{#if}}` 包裹；段落级条件仍用行内标记。
+- 生成项目的 Python 模板在启动时加载 `.env`：`.env` 覆盖宿主同名变量，
+  并在存在 `ANTHROPIC_API_KEY` 时移除 `ANTHROPIC_AUTH_TOKEN`，避免两种
+  认证头冲突与网关地址被宿主环境改写。FastAPI 入口改为读取
+  `API_HOST` / `API_PORT` / `DEBUG`。
 - 生成项目的 Agent 失败按类型区分：`AgentError` 基类下新增
   `AgentConnectionError`、`AgentProcessError`、`AgentBudgetExceededError`、
   `AgentRateLimitError`，SDK 异常会映射为由 `__cause__` 保留原始错误的
@@ -24,6 +28,8 @@
   约定式校验；Python 用 uv、TypeScript 用 pnpm 作为默认包管理器。
 
 ### Changed
+- `agent-guide/` 新增沙箱专题：模型与工具的边界、策略取舍，以及并行
+  工具调用的写后读竞态和环境变量改写模型流量两个故障的成因与修法。
 
 - `CLAUDE.md` 不再复述规则，改为只用 `@` 引入 `AGENTS.md`。
 - Claude Agent SDK 固定到 `0.2.176`，LangGraph 到 `1.2.19`、

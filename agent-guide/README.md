@@ -22,6 +22,7 @@ Python 项目代入自己的包名即可；其他项目按自己的模块结构�
 | [prompts](prompts/) | Prompt Registry：变量契约、版本、渲染 |
 | [structured-output](structured-output/) | Pydantic 输出模型与校验 |
 | [logging](logging/) | JSONL 事件日志与脱敏 |
+| [sandbox](sandbox/) | 工具在沙箱里执行：边界、策略与两个常见故障 |
 
 ## 两种 Runtime 怎么选
 

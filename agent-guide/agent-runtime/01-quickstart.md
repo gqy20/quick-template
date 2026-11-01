@@ -40,7 +40,29 @@ asyncio.run(main())
 
 - 返回值是 `SentimentOutput` 实例，不是 dict。
 - 失败按类型抛出，见下节。
-- 需要 `ANTHROPIC_API_KEY`。
+- 需要 `ANTHROPIC_API_KEY`：写进项目根目录的 `.env`，程序启动时由
+  `load_environment()` 加载。
+
+## 配置来源
+
+`load_environment()` 在读取配置前调用一次：
+
+```python
+from your_package import load_environment
+
+load_environment()
+```
+
+它做两件事：
+
+1. 加载 `.env` 并**覆盖**宿主同名变量 —— 宿主 shell 里可能有指向其他网关的
+   `ANTHROPIC_BASE_URL`，只在 `.env` 中显式声明才能压过它。未声明的变量
+   仍沿用宿主值。
+2. 当 `ANTHROPIC_API_KEY` 存在时移除 `ANTHROPIC_AUTH_TOKEN`。两者并存时
+   SDK 会同时发出两种认证头，只校验 `Authorization` 的网关会拒掉合法 Key。
+
+`uv run python -m your_package.main` 和 `run_api()` 已经调用过它；作为库
+直接调用 `structured_query` 时，先自己调一次。
 
 ## 错误处理
 

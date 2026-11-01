@@ -1,5 +1,6 @@
 """主模块的测试用例。"""
 
+import os
 from unittest.mock import patch
 
 import pytest
@@ -61,3 +62,43 @@ def test_main_does_not_run_agent_demo_by_default():
     with patch("{{package_name }}.main.run_agent_demos") as mock_agent_demo:
         main()
     mock_agent_demo.assert_not_called()
+
+
+def test_load_environment_prefers_dotenv(tmp_path, monkeypatch):
+    """`.env` 覆盖宿主变量。"""
+    from {{package_name }} import load_environment
+
+    env_file = tmp_path / ".env"
+    env_file.write_text("ANTHROPIC_API_KEY=from-dotenv\n")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "from-shell")
+
+    load_environment(env_file)
+
+    assert os.environ["ANTHROPIC_API_KEY"] == "from-dotenv"
+
+
+def test_load_environment_drops_conflicting_auth_token(tmp_path, monkeypatch):
+    """同时存在 API Key 与 Auth Token 时移除后者，避免两种认证头冲突。"""
+    from {{package_name }} import load_environment
+
+    env_file = tmp_path / ".env"
+    env_file.write_text("ANTHROPIC_API_KEY=from-dotenv\n")
+    monkeypatch.setenv("ANTHROPIC_AUTH_TOKEN", "ambient-token")
+
+    load_environment(env_file)
+
+    assert "ANTHROPIC_AUTH_TOKEN" not in os.environ
+
+
+def test_load_environment_keeps_auth_token_without_api_key(tmp_path, monkeypatch):
+    """只有 Auth Token 时保留它，不能把用户唯一的凭据删掉。"""
+    from {{package_name }} import load_environment
+
+    env_file = tmp_path / ".env"
+    env_file.write_text("SOMETHING_ELSE=1\n")
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.setenv("ANTHROPIC_AUTH_TOKEN", "ambient-token")
+
+    load_environment(env_file)
+
+    assert os.environ["ANTHROPIC_AUTH_TOKEN"] == "ambient-token"

@@ -6,6 +6,7 @@ from importlib.util import find_spec
 from rich.panel import Panel
 from rich.table import Table
 
+from {{package_name }} import load_environment
 from {{package_name}}.agent_models import (
     CodeReviewOutput,
     SentimentOutput,
@@ -253,6 +254,7 @@ async def run_agent_demos() -> None:
 
 def main(run_agent_demo: bool = False) -> None:
     """运行主程序；真实 Agent Demo 必须显式启用。"""
+    load_environment()
     console.print(
         Panel.fit(
             "[bold cyan]{{project_name }}[/bold cyan] - {{description }}",

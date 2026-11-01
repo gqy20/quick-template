@@ -399,12 +399,21 @@ async def list_users(skip: int = 0, limit: int = 10):
 def main() -> None:
     """运行 FastAPI 应用。
 
-    使用 uvicorn 启动服务器。
+    使用 uvicorn 启动服务器，监听地址与端口取自 `.env` 或环境变量。
     """
+    import os
+
     import uvicorn
 
-    logger.info("启动 FastAPI 服务器...")
-    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
+    from {{package_name }} import load_environment
+
+    load_environment()
+    host = os.environ.get("API_HOST", "0.0.0.0")
+    port = int(os.environ.get("API_PORT", "8000"))
+    debug = os.environ.get("DEBUG", "false").lower() in {"1", "true", "yes"}
+
+    logger.info("启动 FastAPI 服务器 %s:%s", host, port)
+    uvicorn.run(app, host=host, port=port, log_level="debug" if debug else "info")
 
 
 if __name__ == "__main__":
