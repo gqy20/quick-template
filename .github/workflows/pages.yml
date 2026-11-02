@@ -29,7 +29,7 @@ jobs:
       - uses: actions/checkout@v7
       - name: Validate static Pages artifact
         run: python scripts/check_pages.py docs
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./docs
