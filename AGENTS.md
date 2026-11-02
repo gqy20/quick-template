@@ -166,8 +166,22 @@ uv run mypy src/scaffold
 uv run pytest
 ```
 
-TypeScript 模板在生成项目内用 `pnpm install && pnpm exec biome check . &&
-pnpm exec tsc --noEmit && pnpm exec vitest run` 验证。
+**验证生成项目时跑它自己的 `pre-commit run --all-files`，不要手挑命令。**
+CI 会对生成项目执行这一步；手挑 ruff/biome 之类的子集会漏掉格式检查，
+本地绿而线上红。先装依赖，再跑门禁：
+
+```bash
+# Python
+uv sync --all-groups --all-extras && uvx pre-commit run --all-files
+# TypeScript
+pnpm install && uvx pre-commit run --all-files
+# Go
+go mod tidy && uvx pre-commit run --all-files
+```
+
+门禁已覆盖 ruff/format/mypy、biome/tsc、gofmt/go vet；再补各自的测试与构建：
+Python `uv run pytest`，TypeScript `pnpm exec vitest run && pnpm run build`，
+Go `go build ./... && go test ./...`。
 
 真实公网、真实模型、外部服务和发布验证必须单独授权。不得用固定睡眠代替
 服务就绪检测，不得复用来源不明的已有进程完成隔离测试。
