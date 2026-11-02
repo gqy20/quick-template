@@ -76,7 +76,9 @@ async def run_demo() -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Claude Agent SDK 护栏示例")
-    parser.add_argument("--run", action="store_true", help="调用真实模型；需要 ANTHROPIC_API_KEY")
+    parser.add_argument(
+        "--run", action="store_true", help="调用真实模型；需要 ANTHROPIC_API_KEY"
+    )
     args = parser.parse_args()
     if not args.run:
         parser.print_help()
