@@ -10,10 +10,18 @@ updates:
     labels:
       - "dependencies"
 
-  # 生成模板里的依赖跟随上游版本手工维护，不纳入自动更新；
+  # 生成模板里的语言依赖跟随上游版本手工维护，不纳入自动更新；
   # GitHub Actions 仍可自动跟进。
   - package-ecosystem: "github-actions"
     directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+
+  # 模板自带的 workflow（生成项目继承这些）同样需要跟进 action 版本。
+  - package-ecosystem: "github-actions"
+    directory: "/shared"
     schedule:
       interval: "weekly"
     labels:
