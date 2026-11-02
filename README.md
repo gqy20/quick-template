@@ -47,6 +47,33 @@ quick-template --language python --with-frontend --output-dir ./my-web-app
 `DESIGN.md` 是一份 300 行的前端视觉与交互契约，只在 `--with-frontend`
 时生成；纯后端或 CLI 项目不需要它。
 
+## 交给 Agent 的开场白
+
+新建空项目目录，把下面这段粘给任意编码 Agent，它会自己装工具、选变体、
+生成项目，然后按项目自带的契约开始实现。把最后一行的需求换成你要的东西。
+
+```text
+用 quick-template 为我在当前目录生成项目，然后按项目自身的契约实现需求。
+
+1. 安装：uv tool install git+https://github.com/gqy20/quick-template
+2. 先看真实选项，不要猜：quick-template --help
+3. 按需求选变体，在当前目录生成（空目录用 --output-dir .，非空加 --force）：
+   quick-template --language <python|golang|typescript> [--no-add-api] [--with-frontend] --output-dir .
+4. 安装并自检：make install && make all
+5. 读 AGENTS.md，按其中的授权分层、变更门禁、验证阶梯和完成标准继续。
+
+需求：<写在这里>
+```
+
+第 2 步让 Agent 读真实选项而不是凭印象编参数；第 5 步把控制权交给
+`AGENTS.md`，规则只维护在那里。变体怎么选：
+
+| 需求 | 变体 |
+|---|---|
+| 只要命令行工具 | `--no-add-api` |
+| 需要 HTTP 服务 | 默认（生成 FastAPI / Gin / Hono） |
+| 有界面要交付 | 追加 `--with-frontend`，生成 `DESIGN.md` |
+
 可通过 JSON 或 YAML 文件覆盖项目变量：
 
 ```json
@@ -75,6 +102,23 @@ repository_username: gqy20
 author_name: gqy20
 line_length: 100
 ```
+
+可覆盖的变量（未提供的取默认值；`project_slug`、`package_name` 等由这些
+自动派生，不需要手写）：
+
+| 变量 | 默认 | 说明 |
+|---|---|---|
+| `project_name` | `My Project` | 人类可读名称 |
+| `description` | `A short description` | 项目描述 |
+| `author_name` / `author_email` | 占位值 | 作者信息，也用于派生仓库路径 |
+| `repository_username` | 由作者名派生 | GitHub 用户名或组织 |
+| `repository_provider` | `https://github.com` | 仓库托管地址 |
+| `license` | `MIT` | 许可证标识 |
+| `version` | `0.1.0` | 初始版本号 |
+| `python_version` / `go_version` / `node_version` | `3.13` / `1.27` / `24` | 运行时版本 |
+| `line_length` | `88` | Ruff / Biome 行宽，79–120 |
+
+`add_api` 与 `has_frontend` 也有对应命令行开关，通常直接传 flag 更直观。
 
 ## 项目结构
 

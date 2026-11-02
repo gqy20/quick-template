@@ -76,3 +76,6 @@ def main(argv: list[str] | None = None) -> None:
         copy_template_dir(lang_dir, output, vars_dict)
 
     print(f"Project generated: {output}")
+    prefix = "" if output.resolve() == Path.cwd().resolve() else f"cd {output} && "
+    print(f"下一步：{prefix}make install && make all")
+    print("然后读 AGENTS.md —— 它是这个项目的执行契约。")

@@ -4,6 +4,10 @@
 
 ### Added
 
+- README 增加「交给 Agent 的开场白」：一段自包含的文本，粘给任意编码
+  Agent 后由它安装工具、按需求选变体、生成项目并接手 AGENTS.md；同时列出
+  可覆盖的变量清单。
+- CLI 生成结束后打印下一步（`make install && make all` 与阅读 `AGENTS.md`）。
 - CI 验证 TypeScript 构建产物（`dist/index.js` 与 `dist/index.d.ts`）；冒烟
   测试覆盖 `--with-frontend` 生成的 Python 项目与分发清单不泄漏；每个语言
   在代表性变体上跑一次 `make all`。
