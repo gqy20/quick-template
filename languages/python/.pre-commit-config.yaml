@@ -5,7 +5,10 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
+      # uv.lock 是应提交的文件；装了可选 Agent 依赖后可达 600 KB 以上，
+      # 默认 500 KB 阈值会误拦。
       - id: check-added-large-files
+        args: [--maxkb=1024]
       - id: check-json
       - id: check-toml
       - id: check-merge-conflict
