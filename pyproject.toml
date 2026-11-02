@@ -12,7 +12,7 @@ dependencies = [
 
 [project.optional-dependencies]
 agent-example = [
-    "claude-agent-sdk==0.2.148",
+    "claude-agent-sdk==0.2.175",
     "rich>=13.0",
 ]
 
