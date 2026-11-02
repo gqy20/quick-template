@@ -11,7 +11,12 @@ from scaffold.variables import ProjectVars
 TEMPLATE_ROOT = Path(__file__).resolve().parent
 
 
-def test_generate(language: str, add_api: bool = True, has_frontend: bool = False) -> Path:
+def test_generate(
+    language: str,
+    add_api: bool = True,
+    has_frontend: bool = False,
+    python_version: str = "3.13",
+) -> Path:
     """使用 scaffold 引擎生成项目。"""
     extra = {
         "project_name": "Test Project",
@@ -24,7 +29,7 @@ def test_generate(language: str, add_api: bool = True, has_frontend: bool = Fals
         "has_frontend": has_frontend,
     }
     if language == "python":
-        extra["python_version"] = "3.13"
+        extra["python_version"] = python_version
     elif language == "golang":
         extra["go_version"] = "1.24"
     elif language == "typescript":
@@ -50,7 +55,8 @@ def main():
     language = sys.argv[1] if len(sys.argv) > 1 else "python"
     add_api = sys.argv[2].lower() == "true" if len(sys.argv) > 2 else True
     has_frontend = sys.argv[3].lower() == "true" if len(sys.argv) > 3 else False
-    dst = test_generate(language, add_api, has_frontend)
+    python_version = sys.argv[4] if len(sys.argv) > 4 else "3.13"
+    dst = test_generate(language, add_api, has_frontend, python_version)
     print(f"OK:{dst}")
 
 

@@ -1,0 +1,20 @@
+version: 2
+updates:
+  # 根仓库的生成器依赖（pyproject.toml + uv.lock）
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+
+  # 生成模板里的依赖跟随上游版本手工维护，不纳入自动更新；
+  # GitHub Actions 仍可自动跟进。
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"

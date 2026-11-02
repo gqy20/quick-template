@@ -4,11 +4,22 @@
 
 ### Added
 
+- CI 验证 TypeScript 构建产物（`dist/index.js` 与 `dist/index.d.ts`）；冒烟
+  测试覆盖 `--with-frontend` 生成的 Python 项目与分发清单不泄漏；每个语言
+  在代表性变体上跑一次 `make all`。
+- 新增 Python 3.11 变体，验证最旧的受支持版本；`test_template.py` 增加
+  `python_version` 参数。
+- 根仓库新增 Dependabot（uv 与 GitHub Actions）。
 - 生成项目的 `AgentConfig` 增加 `sandbox`，整段透传给 Claude Code 的 OS 级
   沙箱；`AgentRunner` 增加 `hooks` 与 `can_use_tool` 注入点，用于确定性拦截
   与人工确认。
 - 新增 `examples/claude_agent_guard.py`：PreToolUse 路径拦截与终端审批，
   默认离线，需显式 `--run`。
+
+### Fixed
+
+- 生成项目的 `make typecheck` 改用 `uv run --all-extras`：此前未装可选依赖时
+  mypy 会把条件忽略注释判为多余，`make all` 在全新项目里直接失败。
 
 ### Changed
 

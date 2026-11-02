@@ -37,7 +37,7 @@ format:
 # ---- 类型检查 ----
 typecheck:
 {{#if language == 'python'}}
-	uv run mypy src/{{ package_name }}
+	uv run --all-extras mypy src/{{ package_name }}
 {{#elif language == 'golang'}}
 	go build ./...
 {{#elif language == 'typescript'}}

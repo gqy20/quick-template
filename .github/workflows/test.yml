@@ -46,6 +46,21 @@ jobs:
           "$SMOKE_ENV/bin/quick-template" --language typescript --no-add-api --output-dir "$RUNNER_TEMP/generated-project"
           test -f "$RUNNER_TEMP/generated-project/package.json"
           test -f "$RUNNER_TEMP/generated-project/AGENTS.md"
+          # 分发清单只用于生成，不得随 wheel 泄漏到输出
+          test ! -f "$RUNNER_TEMP/generated-project/.template.yml"
+
+      - name: 冒烟 — Python 项目含可选内容
+        run: |
+          SMOKE_ENV="$RUNNER_TEMP/quick-template-smoke"
+          OUT="$RUNNER_TEMP/generated-python"
+          "$SMOKE_ENV/bin/quick-template" --language python --with-frontend --output-dir "$OUT"
+          PKG=$(find "$OUT/src" -mindepth 1 -maxdepth 1 -type d | head -1)
+          test -f "$PKG/__init__.py"
+          test -f "$OUT/examples/langgraph_review.py"
+          test -f "$OUT/examples/claude_agent_guard.py"
+          test -f "$OUT/DESIGN.md"
+          test -f "$OUT/docs/README.md"
+          test ! -f "$OUT/.template.yml"
 
   test-template:
     needs: package-smoke
@@ -81,6 +96,11 @@ jobs:
           - language: typescript
             with-api: true
             with-frontend: true
+          # 最旧的受支持 Python 版本单独验证一次
+          - language: python
+            with-api: true
+            with-frontend: false
+            python-version: "3.11"
 
     steps:
       - name: 检出代码
@@ -100,6 +120,13 @@ jobs:
           go-version: "1.27"
           cache: false
 
+      - name: 安装 golangci-lint
+        if: matrix.language == 'golang'
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh \
+            | sh -s -- -b "$RUNNER_TEMP/bin" v2.15.0
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+
       - name: 设置 Node.js
         if: matrix.language == 'typescript'
         uses: actions/setup-node@v7
@@ -115,7 +142,7 @@ jobs:
       - name: 使用 scaffold 引擎生成项目
         id: generate
         run: |
-          OUTPUT=$(uv run test_template.py "${{ matrix.language }}" "${{ matrix.with-api }}" "${{ matrix.with-frontend }}")
+          OUTPUT=$(uv run test_template.py "${{ matrix.language }}" "${{ matrix.with-api }}" "${{ matrix.with-frontend }}" "${{ matrix['python-version'] || '3.13' }}")
           echo "$OUTPUT"
           DST_DIR=$(echo "$OUTPUT" | grep "^OK:" | cut -d: -f2-)
           echo "dst_dir=$DST_DIR" >> "$GITHUB_OUTPUT"
@@ -236,6 +263,20 @@ jobs:
         if: matrix.language == 'typescript'
         working-directory: ${{ steps.generate.outputs.dst_dir }}
         run: pnpm exec vitest run
+
+      - name: TypeScript — 构建
+        if: matrix.language == 'typescript'
+        working-directory: ${{ steps.generate.outputs.dst_dir }}
+        run: |
+          pnpm run build
+          test -f dist/index.js
+          test -f dist/index.d.ts
+
+      # Makefile 是生成项目文档里的主入口，至少在每个语言的一个变体上验证它
+      - name: 验证 Makefile 入口
+        if: matrix['with-api'] == true && matrix['with-frontend'] == false
+        working-directory: ${{ steps.generate.outputs.dst_dir }}
+        run: make all
 
       # ========== 生成的提交门禁必须能加载并执行 ==========
       - name: 提交门禁 — 初始化仓库并安装 hook
