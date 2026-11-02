@@ -10,12 +10,6 @@ dependencies = [
     "pyyaml>=6.0",
 ]
 
-[project.optional-dependencies]
-agent-example = [
-    "claude-agent-sdk==0.2.148",
-    "rich>=13.0",
-]
-
 [project.scripts]
 quick-template = "scaffold.cli:main"
 
