@@ -30,7 +30,7 @@ jobs:
       - name: Validate static Pages artifact
         run: python scripts/check_pages.py docs
       - uses: actions/configure-pages@v6
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: ./docs
       - id: deploy
