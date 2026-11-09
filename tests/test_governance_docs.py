@@ -52,8 +52,7 @@ def test_generated_agent_contract_is_complete(tmp_path, language, add_api):
     assert "## 事实源与文档路由" in content
     assert "## 工作区与 Git 安全" in content
     assert "## 验证阶梯" in content
-    assert "## Code Review Rules" in content
-    assert "## 完成标准" in content
+    assert "## 完成与审查" in content
     assert ("API：启用" if add_api else "API：未启用") in content
     assert "{{#" not in content
     assert len(content.encode()) < 24 * 1024

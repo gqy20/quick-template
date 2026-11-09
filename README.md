@@ -152,44 +152,11 @@ CI 会验证 Python、Go、TypeScript 各自启用和关闭 API 的 6 种组合�
 
 ## Python Agent Runtimes
 
-Python 模板提供两种可选、可对照的 Agent Runtime：
+Python 模板附带两套可选、可对照的 Runtime：Claude Agent SDK 与 LangGraph，
+分别用 `uv sync --extra agent` 和 `--extra agent-langgraph` 安装，默认离线。
 
-- Claude Agent SDK：`claude-agent-sdk==0.2.176`，使用原生 Agent loop、
-  MCP、Skills 与权限。
-- LangGraph：`langgraph==1.2.19` + `langchain-anthropic==1.7.7` +
-  `langchain-mcp-adapters==0.3.2`，使用显式 StateGraph、原生 `ToolNode`、
-  校验重试和 checkpoint。
-
-两者共享：
-
-- `config/prompts/*.yaml` 中立 Prompt。
-- `agent_models.py` Pydantic 输出模型。
-- `agent_log.py` 脱敏结构化日志。
-
-Claude 使用 `config/agent.yaml` 与 `.mcp.json`；LangGraph 使用
-`config/runtimes/langgraph.yaml`，并把同一 `.mcp.json` 转换给官方 MCP
-Adapter。LangGraph 工具路径为 `model → ToolNode → model → structured output`，
-工具参数与结果正文不会写入默认审计日志。`.mcp.json` 只声明连接，MCP 工具
-还必须在 `mcp_allowed_tools` 中按 Adapter 最终名称显式授权；空列表不会连接
-任何 MCP Server。工具中的 `interrupt()` 会保留 checkpoint，可用 Runtime 的
-`resume()` 和原 thread ID 恢复。LangGraph 示例位于
-`examples/langgraph_review.py`，真实模型必须显式传入 `--run`。
-
-Claude CLI 完整 transcript 默认写入临时目录并在运行后删除；需要恢复会话时
-可显式切换到 gitignored 的 `.agent-state/claude/`。
-
-安装：
-
-```bash
-uv sync --extra agent
-uv sync --extra agent-langgraph
-```
-
-普通运行和测试保持离线，真实 Agent Demo 必须显式启用。
-
-```bash
-uv run --extra agent-langgraph python examples/langgraph_review.py --run
-```
+配置入口、工具授权、Prompt 契约和运行方式见 [`agent-guide/`](agent-guide/)；
+生成项目的 `README.md` 列出各自的文件路径。
 
 ## 当前边界
 
