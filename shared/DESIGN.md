@@ -15,6 +15,7 @@ colors:
   accent: "#B04A5A"
   accent-hover: "#923B49"
   accent-soft: "#F8ECEE"
+  focus: "#0B63CE"
   evidence: "#0F766E"
   evidence-soft: "#E8F5F2"
   success: "#15803D"
@@ -83,6 +84,7 @@ Token 按用途命名，不按某个页面或当前色相命名。新增视觉�
 - **ink**：标题、正文和需要长期阅读的信息；不使用纯黑。
 - **ink-muted**：元数据和辅助说明，仍需满足对比度要求。
 - **border**：结构线，不承担主要强调。
+- **focus**：键盘焦点环，不用于装饰或普通强调。
 - **accent**：唯一品牌强调色，只用于主要动作、当前选择和少量关键状态。
 - **evidence**：可追溯来源、证据入口和已定位关系；不是第二品牌色。
 - **success / warning / danger**：只表达明确系统状态，不用于装饰。
@@ -96,8 +98,12 @@ Token 按用途命名，不按某个页面或当前色相命名。新增视觉�
 primitive value → semantic token → component role → state
 ```
 
-组件只消费 semantic token。禁止在组件层新增 `blue-500`、`gray-200`
-这类无业务语义的直接引用。
+组件只消费 semantic token：
+
+```css
+/* 对：语义层 */ .card { background: var(--surface); border: 1px solid var(--border); }
+/* 错：绕过语义层，直接引用色阶 */ .card { background: #FFFFFF; border: 1px solid #DEDED9; }
+```
 
 ### 间距与几何
 
@@ -169,15 +175,31 @@ AI 营销套话。空状态、错误和提示只说明发生了什么、影响�
 
 - 主按钮每个可视区域最多一个，标签使用“动词 + 对象”。
 - 次按钮使用描边或 ghost，不与主操作竞争。
-- 标准高度至少 40px，触摸目标至少 44×44px。
-- 按下可使用 1px 位移或 0.98 缩放；不使用发光、弹跳和夸张上浮。
-- 加载状态保持原有宽度并说明正在执行的动作。
-- 禁用态保留可读性，必要时解释不可用原因。
+- 加载态保持原有宽度，并说明正在执行的动作。
+
+```css
+.button {
+  min-height: 40px;                 /* 触摸目标 ≥44×44 由 padding 补足 */
+  padding: 0 16px;
+  border-radius: var(--radius-control);
+  background: var(--accent);
+  color: var(--surface);
+  transition: background var(--motion-fast) var(--ease),
+              transform var(--motion-fast) var(--ease);
+}
+.button:hover { background: var(--accent-hover); }
+.button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.button:active { transform: translateY(1px); }   /* 不用发光、弹跳或夸张上浮 */
+.button:disabled { opacity: 0.6; cursor: not-allowed; }
+```
+
+`focus-visible` 用 `outline` 而不是 `box-shadow`：不改变布局尺寸，也不被
+`overflow: hidden` 裁掉。
 
 ### 输入与表单
 
 - 使用可见 label，不依赖 placeholder 作为唯一标签。
-- Focus 不改变布局尺寸，显示高对比焦点环。
+- 焦点环与按钮共用 `var(--focus)`，不改变布局尺寸。
 - 错误包含字段、原因和修复方式；不只显示红色边框。
 - 提交失败保留用户输入。
 - 破坏性或不可逆提交明确说明后果并提供确认。
