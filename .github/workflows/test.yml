@@ -135,7 +135,7 @@ jobs:
 
       - name: 安装 pnpm
         if: matrix.language == 'typescript'
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: "10.34.9"
 
