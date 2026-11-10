@@ -9,8 +9,8 @@
 
 - 不追求覆盖所有语言、框架或项目类型。
 - 不把可选 Agent、前端、数据库或部署能力塞入所有项目。
-- 不为尚未出现的需求预建抽象、兼容层或插件系统。
-- 不恢复 Copier 或第二套模板事实源。
+- 不为尚未出现的需求预建抽象、Provider、接口、兼容层或配置项。
+- 不恢复 Copier 或 `template/`，不得出现第二套模板事实源。
 
 ## 指令优先级
 
@@ -25,24 +25,20 @@
 
 ## 项目事实
 
-- `src/scaffold/` 是生成器实现。
-- `languages/` 与 `shared/` 是唯一模板源。
-- `template/` 已废弃，不得恢复第二套渲染树。
-- wheel 必须包含全部模板资源；源码可运行但 wheel 不可用属于发布阻断。
+- wheel 必须包含全部模板资源；缺资源属于发布阻断。
 - Python、Go、TypeScript 的 API / 非 API 六种组合都是受支持契约。
   `--with-frontend` 是附加维度，只决定是否生成 `DESIGN.md` 及其引用。
 - 语言模板默认包管理器：Python 用 uv，TypeScript 用 pnpm。模板、CI 和文档
   必须保持一致。
 - 模板语法：`{{var}}`、`{{#if}}`/`{{#elif}}`/`{{#else}}`/`{{#endif}}`；
   表达式只支持 `varname`、`varname=='val'`、`varname!='val'`。标记独占
-  一行时其后的换行归标记行、渲染后不产生空行；标记在行中时其后换行属于
-  内容。引擎行为以 `src/scaffold/engine.py` 与 `tests/test_engine.py` 为准。
+  一行时不产生额外空行；标记在行中时其后换行属于内容。引擎行为以
+  `src/scaffold/engine.py` 与 `tests/test_engine.py` 为准。
 - 整文件的条件分发写在模板根目录的 `.template.yml`，键是相对路径、值是
   条件表达式；未列出的文件始终生成。段落级条件仍用行内 `{{#if}}`。
   清单由 `src/scaffold/files.py` 解析，以 `tests/test_manifest.py` 为准。
 
-代码、测试、当前 Schema 和已合并配置描述已实现事实。Roadmap、TODO、
-草案和 Proposed 设计不得当作已经实现的能力。
+代码、测试和配置描述已实现事实；Roadmap、TODO 和 Proposed 只算计划。
 
 ## 事实源与文档路由
 
@@ -62,8 +58,7 @@
 - 模板引擎契约：`src/scaffold/` 与 `tests/`
 - 线上真实门禁：`.github/workflows/test.yml`
 
-修改模板前只读取任务相关语言目录和共享文件。修改公共行为前先读相应测试；
-修改 CI 时保证本地验证命令与线上命令一致。
+修改公共行为前先读相应测试；修改 CI 时保证本地验证命令与线上命令一致。
 
 ## 按请求类型确定授权
 
@@ -90,7 +85,6 @@
 
 - 优先复用当前架构、标准库、框架原生能力和现有依赖。
 - 局部修改足够时不得跨模块重构。
-- 不为未来假设增加 Provider、接口、兼容层或配置项。
 - 不同时实现多个备选方案。
 - 新增生产依赖必须证明现有能力无法正确完成当前需求。
 - 修改模板引擎或文件复制前先补回归测试；新增模板变量时必须同步模型、
@@ -115,7 +109,6 @@
 - `AGENTS.md` 是跨 Agent 规范事实源；`CLAUDE.md` 只做路由或平台特有补充。
   它必须用 `@../AGENTS.md` 引入：Claude Code 存在 `CLAUDE.md` 时只读该文件，
   写"请阅读 AGENTS.md"这样的文字指引不会生效。
-- `DESIGN.md` 保存稳定设计契约；截图、差异和迭代历史写入独立 Design QA。
 - 多 Runtime 共享 Prompt、Pydantic 输出和高层日志，但保留各自原生状态与工具语义。
 - `.mcp.json` 只声明连接；LangGraph MCP 工具必须由 Runtime 配置显式授权，
   协议与会话交给官方 Adapter。
