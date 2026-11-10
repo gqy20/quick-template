@@ -30,10 +30,6 @@ def test_generate(
     }
     if language == "python":
         extra["python_version"] = python_version
-    elif language == "golang":
-        extra["go_version"] = "1.24"
-    elif language == "typescript":
-        extra["node_version"] = "22"
 
     vars_dict = ProjectVars.build(None, language, add_api, extra).to_dict()
 

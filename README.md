@@ -44,8 +44,8 @@ quick-template --language typescript --output-dir ./my-ts-app
 quick-template --language python --with-frontend --output-dir ./my-web-app
 ```
 
-`DESIGN.md` 是一份 300 行的前端视觉与交互契约，只在 `--with-frontend`
-时生成；纯后端或 CLI 项目不需要它。
+`DESIGN.md` 是一份前端视觉与交互契约，只在 `--with-frontend` 时生成；
+纯后端或 CLI 项目不需要它。
 
 ## 交给 Agent 的开场白
 
@@ -161,6 +161,8 @@ Python 模板附带两套可选、可对照的 Runtime：Claude Agent SDK 与 La
 ## 当前边界
 
 - 默认拒绝写入非空目录；确认需要覆盖时可显式传入 `--force`。
+- `--force` 只覆盖同名文件，不删除上次生成但本次关闭的文件；切换变体
+  建议使用新目录。
 - 自研引擎暂不提供类似 `copier update` 的增量模板合并能力。
 
 ## License

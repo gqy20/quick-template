@@ -58,6 +58,16 @@ def test_generated_agent_contract_is_complete(tmp_path, language, add_api):
     assert len(content.encode()) < 24 * 1024
 
 
+@pytest.mark.parametrize("has_frontend", [False, True])
+def test_validation_ladder_numbering_is_contiguous(tmp_path, has_frontend):
+    output = generate_template(tmp_path, "python", True, has_frontend)
+    content = (output / "AGENTS.md").read_text()
+
+    ladder = content.split("## 验证阶梯", 1)[1].split("\n## ", 1)[0]
+    numbers = [int(n) for n in re.findall(r"^(\d+)\. ", ladder, re.MULTILINE)]
+    assert numbers == list(range(1, len(numbers) + 1))
+
+
 def test_generated_design_contract_has_semantic_sections(tmp_path):
     output = generate_template(tmp_path, "typescript", True, has_frontend=True)
     content = (output / "DESIGN.md").read_text()

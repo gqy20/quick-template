@@ -28,6 +28,14 @@ Thumbs.db
 __pycache__/
 *.pyc
 *.pyo
+.venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+.coverage
+htmlcov/
 
 # 数据库文件
 *.db

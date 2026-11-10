@@ -24,8 +24,20 @@
 
 - 生成项目的 `make typecheck` 改用 `uv run --all-extras`：此前未装可选依赖时
   mypy 会把条件忽略注释判为多余，`make all` 在全新项目里直接失败。
+- 生成项目的 Python CI 同样改用 `uv run --all-extras mypy`，避免首次推送就
+  因 unused-ignore 变红。
+- 生成项目的 `make install` 去掉多余的 `uv venv`，重复执行不再因 `.venv`
+  已存在而中断。
+- Python 模板删除重复定义的 `commit-msg-lint` hook，提交信息校验不再跑两次。
+- 生成项目的验证阶梯在未启用前端时不再跳过第 5 项。
 
 ### Changed
+- Go 项目的 `make check` 改用 `gofmt` + `go vet`，`make format` 去掉未安装的
+  `goimports`，`make install` 改用 `go mod tidy` 生成完整 `go.sum`；
+  `golangci-lint` 仍由生成 CI 运行，`make install && make all` 只需 Go 工具链。
+- `test_template.py` 不再覆盖 Go / Node 版本，CI 生成矩阵验证文档中的默认值。
+- 生成结果检查改为扫描任意 `{{` 标记（排除 `${{ }}`），可拦截写错的变量名。
+- README 补充 `--force` 不清理陈旧文件的边界，并移除 `DESIGN.md` 的行数描述。
 
 - `agent-guide` 的沙箱专题改为先讲 SDK 自带的 OS 级沙箱（只管 shell 命令、
   默认读权限宽、失败会降级），外部沙箱作为更强隔离的备选；工具专题补充

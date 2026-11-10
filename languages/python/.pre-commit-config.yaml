@@ -45,11 +45,3 @@ repos:
         entry: bash scripts/hooks/commit-msg-lint.sh
         language: system
         stages: [commit-msg]
-
-  - repo: local
-    hooks:
-      - id: commit-msg-lint
-        name: commit message lint
-        entry: bash scripts/hooks/commit-msg-lint.sh
-        language: system
-        stages: [commit-msg]

@@ -38,7 +38,7 @@ jobs:
         run: uv run ruff format --check src tests scripts
 
       - name: 运行 mypy 类型检查
-        run: uv run mypy src/{{ package_name }}
+        run: uv run --all-extras mypy src/{{ package_name }}
 
       - name: 运行测试
         run: uv run pytest --cov=src/{{ package_name }} --cov-report=xml --cov-report=term-missing

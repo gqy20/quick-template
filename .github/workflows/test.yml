@@ -198,9 +198,9 @@ jobs:
               exit 1
             fi
           fi
-          # 不留模板控制标记
-          if grep -rq "{{#endif}}" "$D"; then
-            echo "生成结果残留模板控制标记"
+          # 不留模板标记（排除 GitHub Actions 表达式）
+          if grep -rEn '(^|[^$])\{\{' "$D"; then
+            echo "生成结果残留模板标记"
             exit 1
           fi
 

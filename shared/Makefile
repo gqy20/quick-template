@@ -3,11 +3,10 @@
 # ---- 安装 ----
 install:
 {{#if language == 'python'}}
-	uv venv
 	uv sync --all-groups
 	uv run pre-commit install
 {{#elif language == 'golang'}}
-	go mod download
+	go mod tidy
 {{#elif language == 'typescript'}}
 	pnpm install
 {{#endif}}
@@ -17,7 +16,7 @@ check:
 {{#if language == 'python'}}
 	uv run ruff check src tests scripts
 {{#elif language == 'golang'}}
-	golangci-lint run ./...
+	@test -z "$$(gofmt -l .)" || { echo "未格式化（gofmt -w .）:"; gofmt -l .; exit 1; }
 	go vet ./...
 {{#elif language == 'typescript'}}
 	pnpm exec biome check .
@@ -29,7 +28,6 @@ format:
 	uv run ruff format src tests scripts
 {{#elif language == 'golang'}}
 	gofmt -w .
-	goimports -w .
 {{#elif language == 'typescript'}}
 	pnpm exec biome format --write .
 {{#endif}}
