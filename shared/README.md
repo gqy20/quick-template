@@ -2,61 +2,47 @@
 
 {{ description }}
 
-[![CI]({{ repository_provider }}/{{ repository_username }}/{{ project_slug }}/actions/workflows/ci/badge.svg)]({{ repository_provider }}/{{ repository_username }}/{{ project_slug }}/actions)
-{{#if language == 'python'}}
-[![Python {{ python_version }}+](https://img.shields.io/badge/python-{{ python_version }}+-blue.svg)](https://www.python.org/downloads/)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-{{#elif language == 'golang'}}
-[![Go {{ go_version }}+](https://img.shields.io/badge/go-{{ go_version }}+%2300ADD8.svg)](https://go.dev/dl/)
-[![golangci-lint](https://golangci-lint.run/badges/github.com/{{ repository_username }}/{{ project_slug }}.svg?style=flat)](https://golangci-lint.run/r/{{ repository_username }}/{{ project_slug }})
-{{#elif language == 'typescript'}}
-[![Node.js {{ node_version }}+](https://img.shields.io/badge/node-{{ node_version }}+%23339933.svg)](https://nodejs.org/)
-[![Biome](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/biomejs/main/packages/website/static/img/badge_v2.json)](https://biomejs.dev/)
-{{#endif}}
+[源码仓库]({{ repository_provider }}/{{ repository_username }}/{{ project_slug }})
 
-## 概述
+## 快速开始
 
 {{#if language == 'python'}}
-现代 Python 项目脚手架，使用 `uv` + `ruff` + `rich` 构建。
+需要 Python {{ python_version }}+ 和 uv。
 {{#elif language == 'golang'}}
-现代 Go 项目脚手架，使用 `Gin` + `go mod` + `golangci-lint` 构建。
+需要 Go {{ go_version }}+，`make check` 使用 PATH 中的 golangci-lint v2.15.0。
 {{#elif language == 'typescript'}}
-现代 TypeScript 项目脚手架，使用 `pnpm` + `Biome` + `vitest` 构建。
+需要 Node.js {{ node_version }}+ 和 pnpm。
 {{#endif}}
 
-**核心特性：**
+在项目根目录运行：
+
+```bash
+make install
+make all
+make run
+```
+
+使用 `make build` 构建，`make help` 查看其他目标。初始化或克隆 Git 仓库后，执行以下命令启用提交检查：
+
+```bash
 {{#if language == 'python'}}
-- 📦 **uv** - 极速包管理器
-- 🏗️ **src layout** - 标准项目结构
-- ⚡ **ruff** - 代码检查和格式化
-- ✅ **pytest** - 测试框架
-- 📝 **rich** - 美观的日志和终端输出
-{{#elif language == 'golang'}}
-- ⚡ **Go** - 高性能编译型语言
-- 🌐 **Gin** - 高性能 Web 框架
-- 🧰 **标准库 CLI** - 简洁、零额外依赖
-- 🔍 **golangci-lint** - 一站式代码检查
-- 📊 **slog** - 结构化日志
-{{#elif language == 'typescript'}}
-- 📦 **pnpm** - 包管理器
-- ⚡ **Biome** - 代码检查和格式化（替代 ESLint + Prettier）
-- ✅ **vitest** - 极速测试框架
-- 🎯 **TypeScript** - 严格类型安全
-- 📦 **tsup** - 轻量打包工具
+uv run pre-commit install --hook-type pre-commit --hook-type commit-msg
+{{#else}}
+pre-commit install --hook-type pre-commit --hook-type commit-msg
 {{#endif}}
-- 🪝 **pre-commit** - 提交前检查与提交信息校验
-- 🔄 **CI/CD** - GitHub Actions
+```
+{{#if language != 'python'}}
+此步骤需要已安装 [pre-commit](https://pre-commit.com)。
+{{#endif}}
+
+{{#if language == 'typescript'}}
 {{#if add_api}}
-{{#if language == 'python'}}
-- 🚀 **FastAPI** - Web 开发示例
-{{#elif language == 'golang'}}
-- 🚀 **Gin** - Web API 示例
-{{#elif language == 'typescript'}}
-- 🚀 **Hono** - 轻量 Web 框架示例
-{{#endif}}
-{{#endif}}
+本地 HTTP 服务的健康检查地址为 `http://127.0.0.1:3000/api/v1/health`。
+可通过 `PORT` 指定端口。
 
-{{#if language == 'python'}}
+{{#endif}}
+{{#endif}}
+{{#if with_agent}}
 ## Agent Runtimes（可选）
 
 Claude Agent SDK：
@@ -117,32 +103,6 @@ Claude 的 `skills` 使用 SDK 原生精确名称过滤；MCP 使用原生配置
 只有明确需要沿用 Claude Code 用户登录和全局设置时才使用 `default`。
 
 {{#endif}}
-## 快速开始
-
-**前置要求：**
-{{#if language == 'python'}}
-- Python {{ python_version }}+
-- [uv](https://github.com/astral-sh/uv)
-{{#elif language == 'golang'}}
-- Go {{ go_version }}+
-{{#elif language == 'typescript'}}
-- Node.js {{ node_version }}+
-- pnpm
-{{#endif}}
-- [pre-commit](https://pre-commit.com)
-
-```bash
-# 克隆项目
-git clone {{ repository_provider }}/{{ repository_username }}/{{ project_slug }}.git
-cd {{ project_slug }}
-
-# 安装依赖
-make install
-
-# 运行测试
-make test
-```
-
 ## 项目结构
 
 ```
@@ -162,8 +122,8 @@ make test
 ├── cmd/{{ project_slug }}/
 │   └── main.go
 ├── internal/
-│   ├── handler/
-│   ├── service/
+{{#if add_api}}│   ├── handler/
+{{#endif}}│   ├── service/
 │   └── model/
 ├── pkg/logger/
 ├── tests/
@@ -174,7 +134,9 @@ make test
 │   ├── core.ts
 │   ├── logger.ts
 {{#if add_api}}
-│   └── api/router.ts
+│   ├── api/router.ts
+│   └── server.ts
+{{#else}}│   └── cli.ts
 {{#endif}}
 ├── tests/
 ├── package.json
@@ -187,26 +149,26 @@ make test
 {{#endif}}└── README.md
 ```
 
-## 常用命令
-
-| 命令 | 说明 |
-|------|------|
-| `make install` | 安装依赖 |
-| `make check` | 代码检查 |
-| `make format` | 格式化代码 |
-| `make typecheck` | 类型检查 |
-| `make test` | 运行测试 |
-| `make test-cov` | 测试 + 覆盖率报告 |
-| `make run` | 运行项目 |
-| `make clean` | 清理缓存 |
-
 ## 代码规范
 
-1. **语言**：注释和文档使用**中文**
-2. **命名**：函数和类使用英文
-3. **类型注解**：必需
-4. **文档字符串**：Google 风格
+注释和文档使用中文，函数和类型使用英文命名。
+{{#if language == 'python'}}Python 函数使用类型注解，文档字符串采用 Google 风格。
+{{#endif}}
 
+{{#if with_publish}}
+## 发布
+
+{{#if language == 'python'}}
+在 PyPI 配置本仓库的 Trusted Publisher，工作流文件为 `publish.yml`、环境为 `pypi`。
+推送与包版本一致的 `vX.Y.Z` 标签后，工作流上传 wheel 和 sdist，再将同一批文件附到 GitHub Release。
+{{#elif language == 'typescript'}}
+在 GitHub 的 `npm` 环境配置可发布此包的 `NPM_TOKEN`，并核对 package.json 的仓库地址。
+推送与包版本一致的 `vX.Y.Z` 标签后，工作流将构建好的 tarball 公开发布到 npm，再附到 GitHub Release。
+{{#else}}
+推送 `vX.Y.Z` 标签会创建 GitHub Release，并使用提交历史生成版本说明。
+{{#endif}}
+
+{{#endif}}
 ## 许可证
 
 {{ license }}

@@ -24,7 +24,7 @@ def runtime_state_env(
     project_root: Path,
 ) -> Iterator[dict[str, str]]:
     """生成传给 ClaudeAgentOptions.env 的隔离环境。"""
-    client_env = {"CLAUDE_AGENT_SDK_CLIENT_APP": "{{project_slug}}/{{version}}"}
+    client_env = {"CLAUDE_AGENT_SDK_CLIENT_APP": "{{project_slug}}/{{ version_escaped }}"}
     if config.mode == "default":
         yield client_env
         return

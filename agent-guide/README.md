@@ -1,17 +1,8 @@
 # Agent 开发指南
 
-用 Python 脚本调用和编写智能体的技术参考。覆盖 Claude Agent SDK 与
-LangGraph 两种 Runtime、Prompt 管理、结构化输出和运行日志。
+执行 `quick-template --language python --with-agent` 生成示例项目。将示例中的 `your_package` 替换为生成的 Python 包名。
 
-示例代码中的 `your_package` 指你项目的包名。由 quick-template 生成的
-Python 项目代入自己的包名即可；其他项目按自己的模块结构替换。
-
-## 阅读顺序
-
-1. [Claude Agent SDK 快速开始](agent-runtime/01-quickstart.md) —— 一次
-   结构化查询的最小完整示例。
-2. [两种 Runtime 怎么选](#两种-runtime-怎么选) —— 决定用哪条路。
-3. 按需查阅对应的配置、工具、Prompt、日志专题。
+首次运行见 [Claude SDK 快速开始](agent-runtime/01-quickstart.md) 或 [LangGraph 快速开始](langgraph/01-quickstart.md)。
 
 ## 目录
 
@@ -26,23 +17,10 @@ Python 项目代入自己的包名即可；其他项目按自己的模块结构�
 
 ## 两种 Runtime 怎么选
 
-| | Claude Agent SDK | LangGraph |
-|---|---|---|
-| 定位 | 直接驱动 Claude Code 运行时 | 自己编排状态机 |
-| 工具 | SDK 内置工具 + 权限模式管控 | 代码里显式传入 `BaseTool` |
-| 状态 | Session 由 SDK 管理 | 自己定义 State，checkpoint 由你选 |
-| 适合 | 需要文件读写、Skills、MCP 的助手型任务 | 需要明确步骤、分支、人工介入的流程 |
-| 依赖 | `uv sync --extra agent` | `uv sync --extra agent-langgraph` |
-
-判据：**任务能用"给一段上下文、要一个结构化结果"描述，用 Claude Agent
-SDK；任务需要多步骤、条件分支或中途暂停，用 LangGraph。**
-
-## 能力分布
-
-两条 Runtime 不是同一套能力的两种写法，选型前先看这里：
-
 | 能力 | Claude Agent SDK | LangGraph |
 |---|---|---|
+| 适用任务 | 模型选择工具来完成任务 | 程序显式控制步骤、分支和暂停点 |
+| 安装 | `uv sync --extra agent` | `uv sync --extra agent-langgraph` |
 | 内置工具（Read/Edit/Bash 等） | ✅ | ❌ 只有你传入的 |
 | Skills / MCP | ✅ 原生 | MCP 经 Adapter |
 | 工具调用拦截 | ✅ `hooks`（10 个事件） | ✅ 节点内代码 |
@@ -51,9 +29,6 @@ SDK；任务需要多步骤、条件分支或中途暂停，用 LangGraph。**
 | OS 级沙箱 | ✅ `sandbox` 选项 | ❌ 需自行隔离 |
 | 步骤与分支控制 | ❌ 交给模型 | ✅ 显式 StateGraph |
 | 工具轮次上限 | `max_turns` | `max_tool_rounds` |
-
-一句话：**要"模型自己决定怎么用工具"，选 Claude SDK；要"我决定每一步做什么"，
-选 LangGraph。** 需要审批时两边都有，但实现机制完全不同。
 
 两者共享 Prompt Registry、Pydantic 输出模型和高层日志约定，但运行时不
 可互换：Claude Agent SDK 的执行器没有实现 LangGraph 要求的模型协议
@@ -64,8 +39,6 @@ SDK；任务需要多步骤、条件分支或中途暂停，用 LangGraph。**
 SDK 内部，LangGraph 看不到也控制不了。
 
 ## 共同约定
-
-两条路径都遵循同样的边界：
 
 - **默认离线。** 普通启动和测试不调用真实模型；只有显式开关才发起调用。
 - **默认最小权限。** Claude 侧默认 `tools: []` + `permission_mode: dontAsk`；

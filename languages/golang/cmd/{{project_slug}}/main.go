@@ -1,19 +1,19 @@
-// Command {{ project_slug }} runs {{ project_name }}.
+// Command {{ project_slug }} starts the application.
 package main
 
 import ({{#if add_api}}
 	"log/slog"
 	"os"
 
-	"{{#if repository_provider=='https://github.com'}}github.com/{{repository_username}}/{{project_slug}}{{#else}}{{repository_provider}}/{{repository_username}}/{{project_slug}}{{#endif}}/internal/handler"
-	"{{#if repository_provider=='https://github.com'}}github.com/{{repository_username}}/{{project_slug}}{{#else}}{{repository_provider}}/{{repository_username}}/{{project_slug}}{{#endif}}/pkg/logger"{{#else}}
+	"{{ go_module_path }}/internal/handler"
+	"{{ go_module_path }}/pkg/logger"{{#else}}
 	"fmt"
 	"log/slog"
 
-	"{{#if repository_provider=='https://github.com'}}github.com/{{repository_username}}/{{project_slug}}{{#else}}{{repository_provider}}/{{repository_username}}/{{project_slug}}{{#endif}}/pkg/logger"{{#endif}}
+	"{{ go_module_path }}/pkg/logger"{{#endif}}
 )
 
-// {{ project_name }} 版本信息（编译时注入）
+// 版本信息（编译时注入）
 var (
 	version = "dev"
 	commit  = "none"
@@ -25,7 +25,7 @@ func main() {
 	logger.Init(slog.LevelInfo)
 
 	slog.Info(
-		"启动 {{ project_name }}",
+		"启动 {{ project_name_escaped }}",
 		"version", version,
 		"commit", commit,
 		"date", date,
@@ -37,5 +37,5 @@ func main() {
 		os.Exit(1)
 	}
 {{#else}}	// TODO: 添加你的业务逻辑
-	fmt.Println("Hello from {{ project_name }}!")
+	fmt.Println("Hello from {{ project_name_escaped }}!")
 {{#endif}}}

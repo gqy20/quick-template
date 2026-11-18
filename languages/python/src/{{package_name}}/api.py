@@ -39,8 +39,8 @@ async def lifespan(_app: FastAPI):
 
 # 创建 FastAPI 应用
 app = FastAPI(
-    title="{{project_name }} API",
-    description="{{description }}",
+    title="{{ project_name_escaped }} API",
+    description="{{ description_escaped }}",
     version="1.0.0",
     docs_url="/api/v1/docs",
     redoc_url="/api/v1/redoc",
@@ -183,7 +183,7 @@ async def log_requests(request: Request, call_next):
 )
 async def root():
     """根路径端点。"""
-    return ApiResponse(data={"message": "欢迎使用 {{project_name }} API"})
+    return ApiResponse(data={"message": "欢迎使用 {{ project_name_escaped }} API"})
 
 
 @app.get(

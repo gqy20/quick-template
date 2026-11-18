@@ -1,19 +1,24 @@
 """{{package_name }} 应用程序的主入口"""
 
+{{#if with_agent}}
 import asyncio
 from importlib.util import find_spec
 
+{{#endif}}
 from rich.panel import Panel
 from rich.table import Table
 
 from {{package_name }} import load_environment
+{{#if with_agent}}
 from {{package_name}}.agent_models import (
     CodeReviewOutput,
     SentimentOutput,
     SummaryOutput,
 )
+{{#endif}}
 from {{package_name}}.core import add, greet
 from {{package_name}}.logger import console, logger, print_header, print_success
+{{#if with_agent}}
 
 # Agent SDK 模块可选导入
 if find_spec("claude_agent_sdk") is not None:
@@ -29,6 +34,7 @@ if find_spec("claude_agent_sdk") is not None:
     HAS_AGENT_SDK = True
 else:
     HAS_AGENT_SDK = False
+{{#endif}}
 
 
 def demo_basic_features() -> None:
@@ -58,8 +64,10 @@ def demo_rich_output() -> None:
     table.add_row("测试", "✓", "pytest，100% 覆盖率")
     table.add_row("代码检查", "✓", "ruff")
     table.add_row("CI/CD", "✓", "GitHub Actions 自动化")
+{{#if with_agent}}
     if HAS_AGENT_SDK:
         table.add_row("Agent SDK", "✓", "Claude Agent SDK 结构化输出")
+{{#endif}}
 
     console.print(table)
 
@@ -82,6 +90,7 @@ def demo_logging() -> None:
     )
 
 
+{{#if with_agent}}
 # ============================================================================
 # Agent SDK 结构化输出演示
 # ============================================================================
@@ -252,12 +261,13 @@ async def run_agent_demos() -> None:
     await demo_agent_quick_query()
 
 
-def main(run_agent_demo: bool = False) -> None:
-    """运行主程序；真实 Agent Demo 必须显式启用。"""
+{{#endif}}
+def main({{#if with_agent}}run_agent_demo: bool = False{{#endif}}) -> None:
+    """运行主程序。"""
     load_environment()
     console.print(
         Panel.fit(
-            "[bold cyan]{{project_name }}[/bold cyan] - {{description }}",
+            "[bold cyan]{{ project_name_escaped }}[/bold cyan] - {{ description_escaped }}",
             border_style="cyan",
         )
     )
@@ -272,11 +282,13 @@ def main(run_agent_demo: bool = False) -> None:
         console.print()
         demo_logging()
 
+{{#if with_agent}}
         # 异步 Agent SDK 演示
         if run_agent_demo:
             console.print()
             asyncio.run(run_agent_demos())
 
+{{#endif}}
         logger.info("应用程序成功完成")
         print_success("所有演示已完成！")
 
@@ -286,7 +298,7 @@ def main(run_agent_demo: bool = False) -> None:
 
 
 if __name__ == "__main__":
-    import argparse
+{{#if with_agent}}    import argparse
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -295,3 +307,5 @@ if __name__ == "__main__":
         help="运行会调用真实 Claude 的 Agent SDK 演示",
     )
     main(run_agent_demo=parser.parse_args().agent_demo)
+{{#else}}    main()
+{{#endif}}

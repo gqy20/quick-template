@@ -2,3 +2,5 @@
 files:
   "src/api/router.ts": add_api
   "tests/api.test.ts": add_api
+  "src/server.ts": add_api
+  "src/cli.ts": "add_api=='False'"

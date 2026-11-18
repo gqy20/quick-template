@@ -1,6 +1,7 @@
 """文件处理：模板渲染、目录复制、数据文件加载。"""
 
 import json
+from collections.abc import Iterable, Iterator
 from pathlib import Path
 from typing import Any
 
@@ -45,17 +46,12 @@ def load_manifest(src: Path, vars_dict: dict) -> dict[str, bool]:
     return resolved
 
 
-def copy_template_dir(src_dir: Path | str, dst_base: Path | str, vars_dict: dict) -> None:
-    """递归复制模板目录到目标，处理每个文件的内容和文件名。"""
-    src = Path(src_dir)
-    dst_base = Path(dst_base)
+def _template_files(src: Path, vars_dict: dict) -> Iterator[tuple[Path, Path]]:
     manifest = load_manifest(src, vars_dict)
     seen: set[str] = set()
 
     for item in sorted(src.rglob("*")):
         if item.is_dir():
-            if item.name in _SKIP_DIRS:
-                continue
             continue
 
         rel = item.relative_to(src)
@@ -64,13 +60,38 @@ def copy_template_dir(src_dir: Path | str, dst_base: Path | str, vars_dict: dict
         if rel.name == MANIFEST_NAME:
             continue
         rendered_parts = [render(str(p), vars_dict) for p in rel.parts]
-        rel_key = Path(*rendered_parts).as_posix()
+        relative = Path(*rendered_parts)
+        rel_key = relative.as_posix()
         if rel_key in manifest:
             seen.add(rel_key)
             if not manifest[rel_key]:
                 continue
-        dst = dst_base / Path(*rendered_parts)
+        yield item, relative
 
+    missing = sorted(set(manifest) - seen)
+    if missing:
+        raise ValueError(f"{src / MANIFEST_NAME} 列出但不存在: {missing}")
+
+
+def copy_template_dirs(sources: Iterable[Path], dst_base: Path, vars_dict: dict) -> None:
+    """先检查全部模板的输出路径，再按来源顺序写入。"""
+    root = dst_base.resolve()
+    files = []
+    for src in sources:
+        for item, relative in _template_files(src, vars_dict):
+            dst = (root / relative).resolve()
+            if not dst.is_relative_to(root):
+                raise ValueError(f"Template destination outside output directory: {relative}")
+            if dst.exists() and not dst.is_file():
+                raise ValueError(f"Expected a file at {dst}")
+            for parent in dst.parents:
+                if parent == root:
+                    break
+                if parent.exists() and not parent.is_dir():
+                    raise NotADirectoryError(parent)
+            files.append((item, dst))
+
+    for item, dst in files:
         dst.parent.mkdir(parents=True, exist_ok=True)
         try:
             content = item.read_text(encoding="utf-8")
@@ -78,13 +99,12 @@ def copy_template_dir(src_dir: Path | str, dst_base: Path | str, vars_dict: dict
             dst.write_bytes(item.read_bytes())
             continue
         rendered = process_file(content, vars_dict)
-        if not rendered.strip():
-            continue
-        dst.write_text(rendered, encoding="utf-8")
+        if rendered.strip():
+            dst.write_text(rendered, encoding="utf-8")
 
-    missing = sorted(set(manifest) - seen)
-    if missing:
-        raise ValueError(f"{src / MANIFEST_NAME} 列出但不存在: {missing}")
+
+def copy_template_dir(src_dir: Path | str, dst_base: Path | str, vars_dict: dict) -> None:
+    copy_template_dirs([Path(src_dir)], Path(dst_base), vars_dict)
 
 
 def load_data_file(path: Path | str) -> dict[str, Any]:

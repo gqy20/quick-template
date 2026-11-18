@@ -1,91 +1,8 @@
-.PHONY: install check format test test-cov clean all help
+.DEFAULT_GOAL := install
+.PHONY: install check format typecheck test test-cov build run clean all help
 
-# ---- 安装 ----
-install:
-{{#if language == 'python'}}
-	uv sync --all-groups
-	uv run pre-commit install
-{{#elif language == 'golang'}}
-	go mod tidy
-{{#elif language == 'typescript'}}
-	pnpm install
-{{#endif}}
+include scripts/language.mk
 
-# ---- 代码检查 ----
-check:
-{{#if language == 'python'}}
-	uv run ruff check src tests scripts
-{{#elif language == 'golang'}}
-	@test -z "$$(gofmt -l .)" || { echo "未格式化（gofmt -w .）:"; gofmt -l .; exit 1; }
-	go vet ./...
-{{#elif language == 'typescript'}}
-	pnpm exec biome check .
-{{#endif}}
-
-# ---- 格式化 ----
-format:
-{{#if language == 'python'}}
-	uv run ruff format src tests scripts
-{{#elif language == 'golang'}}
-	gofmt -w .
-{{#elif language == 'typescript'}}
-	pnpm exec biome format --write .
-{{#endif}}
-
-# ---- 类型检查 ----
-typecheck:
-{{#if language == 'python'}}
-	uv run --all-extras mypy src/{{ package_name }}
-{{#elif language == 'golang'}}
-	go build ./...
-{{#elif language == 'typescript'}}
-	pnpm exec tsc --noEmit
-{{#endif}}
-
-# ---- 测试 ----
-test:
-{{#if language == 'python'}}
-	uv run pytest
-{{#elif language == 'golang'}}
-	go test ./... -race -count=1
-{{#elif language == 'typescript'}}
-	pnpm exec vitest run
-{{#endif}}
-
-test-cov:
-{{#if language == 'python'}}
-	uv run pytest --cov=src/{{ package_name }} --cov-report=html
-{{#elif language == 'golang'}}
-	go test ./... -race -coverprofile=coverage.out
-	go tool cover -html=coverage.out -o coverage.html
-{{#elif language == 'typescript'}}
-	pnpm exec vitest run --coverage
-{{#endif}}
-
-# ---- 运行 ----
-run:
-{{#if language == 'python'}}
-	{{#if add_api}}uv run python -m {{ package_name }}.api{{#else}}uv run python -m {{ package_name }}.main{{#endif}}
-{{#elif language == 'golang'}}
-	go run ./cmd/{{ project_slug }}
-{{#elif language == 'typescript'}}
-	pnpm run dev
-{{#endif}}
-
-# ---- 清理 ----
-clean:
-{{#if language == 'python'}}
-	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
-	find . -type f -name "*.pyc" -delete 2>/dev/null || true
-	rm -rf .coverage htmlcov/ dist/ build/ *.egg-info .venv .mypy_cache .ruff_cache
-{{#elif language == 'golang'}}
-	rm -rf coverage.out coverage.html
-	go clean -cache
-{{#elif language == 'typescript'}}
-	rm -rf dist/ node_modules/ coverage/
-{{#endif}}
-
-# ---- 全量检查 ----
 all: check typecheck test
 
 help:
@@ -96,6 +13,7 @@ help:
 	@echo "  make typecheck  - 类型检查"
 	@echo "  make test       - 运行测试"
 	@echo "  make test-cov   - 测试 + 覆盖率"
+	@echo "  make build      - 构建项目"
 	@echo "  make run        - 运行项目"
 	@echo "  make clean      - 清理缓存"
 	@echo "  make all        - 检查 + 类型检查 + 测试"

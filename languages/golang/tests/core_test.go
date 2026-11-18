@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	"{{#if repository_provider=='https://github.com'}}github.com/{{repository_username}}/{{project_slug}}{{#else}}{{repository_provider}}/{{repository_username}}/{{project_slug}}{{#endif}}/internal/service"
+	"{{ go_module_path }}/internal/service"
 )
 
 func TestGreet(t *testing.T) {

@@ -5,7 +5,7 @@ from {{package_name}} import __version__, add, greet
 
 def test_version():
     """测试版本号是否已定义。"""
-    assert __version__ == "0.1.0"
+    assert __version__ == "{{ version_escaped }}"
 
 
 def test_exports():

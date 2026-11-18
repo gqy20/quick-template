@@ -1,11 +1,6 @@
 # quick-template 设计契约
 
-生成项目的通用前端设计基线维护在
-[`shared/DESIGN.md`](shared/DESIGN.md)。它是模板中的语义设计事实源，
-覆盖设计北极星、Token、字体、布局、组件、响应式、无障碍、动效、
-禁止模式和 Design QA。
-
-本仓库的 `docs/` 页面同样遵守该基线，但保留以下项目特定约束：
+文档站 `docs/` 遵循[共享设计规范](shared/DESIGN.md)，另有以下要求：
 
 - 页面目标是解释脚手架能力和安装方式，不做产品营销叙事。
 - Python、Go、TypeScript 使用语义一致的语言标识，不把颜色用于装饰。

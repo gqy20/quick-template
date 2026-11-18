@@ -2,3 +2,4 @@
 files:
   "internal/handler/handler.go": add_api
   "tests/handler_test.go": add_api
+  ".github/workflows/release.yml": with_publish

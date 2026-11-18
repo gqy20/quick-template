@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "{{ project_slug }}"
-version = "{{ version }}"
-description = "{{ description }}"
+version = "{{ version_escaped }}"
+description = "{{ description_escaped }}"
 readme = "README.md"
 requires-python = ">={{ python_version }}"
 license = { text = "{{ license }}" }
 authors = [
-    { name = "{{ author_name }}", email = "{{ author_email }}" },
+    { name = "{{ author_name_escaped }}", email = "{{ author_email_escaped }}" },
 ]
 
 classifiers = [
@@ -28,14 +28,18 @@ classifiers = [
 
 dependencies = [
     "rich>=13.0.0",
-    "pydantic>=2.10.0",
-    "pyyaml>=6.0.0",
+{{#if add_api}}    "pydantic>=2.10.0",
+{{#elif with_agent}}    "pydantic>=2.10.0",
+{{#endif}}
+{{#if with_agent}}    "pyyaml>=6.0.0",
+{{#endif}}
     "python-dotenv>=1.0.0",
 {{#if add_api}}    "fastapi>=0.100.0",
     "uvicorn[standard]>=0.23.0",
 {{#endif}}
 ]
 
+{{#if with_agent}}
 [project.optional-dependencies]
 agent = ["claude-agent-sdk==0.2.176"]
 agent-langgraph = [
@@ -44,9 +48,10 @@ agent-langgraph = [
     "langchain-mcp-adapters==0.3.2",
 ]
 
+{{#endif}}
 [project.urls]
-Homepage = "{{ repository_provider }}/{{ repository_username }}/{{ project_slug }}"
-Repository = "{{ repository_provider }}/{{ repository_username }}/{{ project_slug }}.git"
+Homepage = "{{ repository_provider_escaped }}/{{ repository_username_escaped }}/{{ project_slug }}"
+Repository = "{{ repository_provider_escaped }}/{{ repository_username_escaped }}/{{ project_slug }}.git"
 
 [dependency-groups]
 dev = [

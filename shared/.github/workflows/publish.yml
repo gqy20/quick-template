@@ -1,147 +1,89 @@
-{{#if language == 'python'}}
-name: Publish to PyPI
-
+{{#if language != 'golang'}}
+name: Publish
 on:
   push:
-    tags:
-      - 'v*.*.*'
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Tag to publish (e.g., v0.1.0)'
-        required: true
-        type: string
+    tags: ['v*.*.*']
 
 permissions:
   contents: read
 
 jobs:
-  validate:
-    name: Validate Release
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-        with:
-          ref: ${{ github.event.inputs.tag || github.ref }}
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v10.0.1
-        with:
-          version: "latest"
-          python-version: "{{ python_version }}"
-
-      - name: Install dependencies
-        run: uv sync --all-groups
-
-      - name: Run full test suite
-        run: uv run pytest -v --cov=src/{{package_name}} --cov-report=xml --cov-report=term-missing
-
-      - name: Run linting
-        run: |
-          uv run ruff check src tests scripts
-          uv run ruff format --check src tests scripts
-
-      - name: Verify version matches tag
-        run: |
-          TAG_VERSION="${{ github.event.inputs.tag || github.ref_name }}"
-          TAG_VERSION="${TAG_VERSION#v}"
-          PACKAGE_VERSION=$(uv run python -c "from {{package_name}} import __version__; print(__version__)")
-
-          echo "Tag version: $TAG_VERSION"
-          echo "Package version: $PACKAGE_VERSION"
-
-          if [ "$TAG_VERSION" != "$PACKAGE_VERSION" ]; then
-            echo "Error: Tag version ($TAG_VERSION) does not match package version ($PACKAGE_VERSION)"
-            exit 1
-          fi
-
   build:
-    name: Build Distribution
-    needs: validate
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-        with:
-          ref: ${{ github.event.inputs.tag || github.ref }}
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v10.0.1
-        with:
-          version: "latest"
-          python-version: "{{ python_version }}"
-
-      - name: Build distribution packages
-        run: uv build
-
-      - name: Check distribution packages
-        run: uvx twine check dist/*
-
-      - name: Upload distribution artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-package-distributions
-          path: dist/
-
-  publish-pypi:
-    name: Publish to PyPI
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/p/{{project_slug}}
-    permissions:
-      id-token: write
-
-    steps:
-      - name: Download distribution artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: python-package-distributions
-          path: dist/
-
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          verbose: true
-          print-hash: true
-{{#elif language == 'typescript'}}
-name: Publish to npm
-
-on:
-  push:
-    tags:
-      - 'v*.*.*'
-  workflow_dispatch:
-
-permissions:
-  contents: read
-
-jobs:
-  test-and-publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+{{#if language == 'python'}}
+      - uses: astral-sh/setup-uv@v10.0.1
+        with:
+          python-version: "{{ python_version }}"
+{{#else}}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "{{ node_version }}"
+      - uses: pnpm/action-setup@v6
+{{#endif}}
+      - run: make install && make all
+      - name: 校验版本并构建
+        run: |
+{{#if language == 'python'}}
+          version=$(uv run python -c 'from importlib.metadata import version; print(version("{{project_slug}}"))')
+          test "$GITHUB_REF_NAME" = "v$version"
+          make build
+          uvx twine check dist/*
+{{#else}}
+          version=$(node -p 'require("./package.json").version')
+          test "$GITHUB_REF_NAME" = "v$version"
+          make build
+          mkdir "$RUNNER_TEMP/packages"
+          pnpm pack --pack-destination "$RUNNER_TEMP/packages"
+{{#endif}}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: packages
+          path: {{#if language == 'python'}}dist/*{{#else}}${{ runner.temp }}/packages/*.tgz{{#endif}}
+          if-no-files-found: error
 
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: {{#if language == 'python'}}pypi{{#else}}npm{{#endif}}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: packages
+          path: dist/
+{{#if language == 'python'}}
+      - uses: pypa/gh-action-pypi-publish@release/v1
+{{#else}}
       - uses: actions/setup-node@v7
         with:
           node-version: "{{ node_version }}"
           registry-url: https://registry.npmjs.org/
-
-      - uses: pnpm/action-setup@v4
-
-      - run: pnpm install
-
-      - run: pnpm test
-
-      - run: pnpm run build
-
-      - name: 发布到 npm
-        run: pnpm publish --provenance --access public
+      - run: npm publish dist/*.tgz --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-{{#elif language == 'golang'}}
+{{#endif}}
+
+  release:
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: packages
+          path: dist/
+      - name: 安装说明
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          echo '{{#if language == 'python'}}pip install {{project_slug}}=={{#else}}npm install {{package_name}}@{{#endif}}'"$version" > release-notes.txt
+      - uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          body_path: release-notes.txt
+          files: dist/*
 {{#endif}}

@@ -12,6 +12,19 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  generator:
+    name: 生成器检查与单元测试
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.0.1
+        with:
+          python-version: "3.13"
+      - run: uv run ruff check src tests test_template.py
+      - run: uv run ruff format --check src tests test_template.py
+      - run: uv run mypy src/scaffold
+      - run: uv run pytest
+
   workflow-lint:
     name: Workflow 静态检查
     runs-on: ubuntu-latest
@@ -53,7 +66,7 @@ jobs:
         run: |
           SMOKE_ENV="$RUNNER_TEMP/quick-template-smoke"
           OUT="$RUNNER_TEMP/generated-python"
-          "$SMOKE_ENV/bin/quick-template" --language python --with-frontend --output-dir "$OUT"
+          "$SMOKE_ENV/bin/quick-template" --language python --with-frontend --with-agent --with-publish --output-dir "$OUT"
           PKG=$(find "$OUT/src" -mindepth 1 -maxdepth 1 -type d | head -1)
           test -f "$PKG/__init__.py"
           test -f "$OUT/examples/langgraph_review.py"
@@ -78,6 +91,8 @@ jobs:
           - language: python
             with-api: true
             with-frontend: true
+            publish: true
+            agent: true
           - language: golang
             with-api: true
             with-frontend: false
@@ -87,6 +102,7 @@ jobs:
           - language: golang
             with-api: true
             with-frontend: true
+            publish: true
           - language: typescript
             with-api: true
             with-frontend: false
@@ -96,6 +112,7 @@ jobs:
           - language: typescript
             with-api: true
             with-frontend: true
+            publish: true
           # 最旧的受支持 Python 版本单独验证一次
           - language: python
             with-api: true
@@ -111,7 +128,7 @@ jobs:
       - name: 安装 uv
         uses: astral-sh/setup-uv@v10.0.1
         with:
-          python-version: "3.13"
+          python-version: ${{ matrix['python-version'] || '3.13' }}
 
       - name: 设置 Go
         if: matrix.language == 'golang'
@@ -123,7 +140,7 @@ jobs:
       - name: 安装 golangci-lint
         if: matrix.language == 'golang'
         run: |
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh \
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/v2.15.0/install.sh \
             | sh -s -- -b "$RUNNER_TEMP/bin" v2.15.0
           echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
 
@@ -139,10 +156,10 @@ jobs:
         with:
           version: "10.34.9"
 
-      - name: 使用 scaffold 引擎生成项目
+      - name: 使用 quick-template CLI 生成项目
         id: generate
         run: |
-          OUTPUT=$(uv run test_template.py "${{ matrix.language }}" "${{ matrix.with-api }}" "${{ matrix.with-frontend }}" "${{ matrix['python-version'] || '3.13' }}")
+          OUTPUT=$(uv run test_template.py "${{ matrix.language }}" "${{ matrix.with-api }}" "${{ matrix.with-frontend }}" "${{ matrix['python-version'] || '3.13' }}" "${{ matrix.agent || false }}" "${{ matrix.publish || false }}")
           echo "$OUTPUT"
           DST_DIR=$(echo "$OUTPUT" | grep "^OK:" | cut -d: -f2-)
           echo "dst_dir=$DST_DIR" >> "$GITHUB_OUTPUT"
@@ -204,79 +221,57 @@ jobs:
             exit 1
           fi
 
-      # ========== Python 完整检查 ==========
-      - name: Python — 安装依赖
+      - name: 安装项目
+        working-directory: ${{ steps.generate.outputs.dst_dir }}
+        run: make install
+
+      - name: 核对实际 Python 解释器
         if: matrix.language == 'python'
         working-directory: ${{ steps.generate.outputs.dst_dir }}
-        run: |
-          uv sync --all-groups --all-extras
+        env:
+          EXPECTED_PYTHON: ${{ matrix['python-version'] || '3.13' }}
+        run: uv run python -c 'import os, sys; assert sys.version_info[:2] == tuple(map(int, os.environ["EXPECTED_PYTHON"].split("."))), sys.version'
 
-      - name: Python — ruff 检查
-        if: matrix.language == 'python'
+      - name: 自检与构建
+        working-directory: ${{ steps.generate.outputs.dst_dir }}
+        run: make all && make build
+
+      - name: 验证 CLI 单次运行
+        if: matrix['with-api'] == false
         working-directory: ${{ steps.generate.outputs.dst_dir }}
         run: |
-          uv run ruff check src tests scripts
-          uv run ruff format --check src tests scripts
+          output=$(timeout 30 make -s run)
+          case "${{ matrix.language }}" in
+            python) grep -Fq "Hello, Python 开发者!" <<< "$output" ;;
+            golang) grep -Fq "Hello from Test Project!" <<< "$output" ;;
+            typescript) grep -Fq "你好，世界！" <<< "$output" ;;
+          esac
 
-      - name: Python — mypy 类型检查
-        if: matrix.language == 'python'
-        working-directory: ${{ steps.generate.outputs.dst_dir }}
-        run: |
-          PKG=$(find src -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | head -1)
-          uv run mypy "src/$PKG"
-
-      - name: Python — 运行测试
-        if: matrix.language == 'python'
-        working-directory: ${{ steps.generate.outputs.dst_dir }}
-        run: |
-          PKG=$(find src -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | head -1)
-          uv run pytest --cov="src/$PKG" --cov-report=term-missing -v
-
-      # ========== Go 完整检查 ==========
-      - name: Go — 验证模块
-        if: matrix.language == 'golang'
-        working-directory: ${{ steps.generate.outputs.dst_dir }}
-        run: |
-          go mod download
-          go mod tidy
-          go vet ./...
-          go build ./...
-          go test ./...
-
-      # ========== TypeScript 完整检查 ==========
-      - name: TypeScript — 安装依赖
+      - name: 验证 TypeScript 构建产物
         if: matrix.language == 'typescript'
         working-directory: ${{ steps.generate.outputs.dst_dir }}
-        run: pnpm install
+        run: test -f dist/index.js && test -f dist/index.d.ts
 
-      - name: TypeScript — Biome 检查
-        if: matrix.language == 'typescript'
-        working-directory: ${{ steps.generate.outputs.dst_dir }}
-        run: pnpm exec biome check .
-
-      - name: TypeScript — 类型检查
-        if: matrix.language == 'typescript'
-        working-directory: ${{ steps.generate.outputs.dst_dir }}
-        run: pnpm exec tsc --noEmit
-
-      - name: TypeScript — 运行测试
-        if: matrix.language == 'typescript'
-        working-directory: ${{ steps.generate.outputs.dst_dir }}
-        run: pnpm exec vitest run
-
-      - name: TypeScript — 构建
-        if: matrix.language == 'typescript'
+      - name: TypeScript — 从 make run 请求健康检查
+        shell: bash
+        if: matrix.language == 'typescript' && matrix['with-api'] == true && matrix['with-frontend'] == false
         working-directory: ${{ steps.generate.outputs.dst_dir }}
         run: |
-          pnpm run build
-          test -f dist/index.js
-          test -f dist/index.d.ts
-
-      # Makefile 是生成项目文档里的主入口，至少在每个语言的一个变体上验证它
-      - name: 验证 Makefile 入口
-        if: matrix['with-api'] == true && matrix['with-frontend'] == false
-        working-directory: ${{ steps.generate.outputs.dst_dir }}
-        run: make all
+          log="$RUNNER_TEMP/typescript-server.log"
+          PORT=0 setsid make run >"$log" 2>&1 &
+          server=$!
+          trap 'kill -- "-$server" 2>/dev/null || true' EXIT
+          for ((attempt=0; attempt<300; attempt++)); do
+            url=$(grep -Eo '^http://127[.]0[.]0[.]1:[0-9]+' "$log" || true)
+            if [[ -n "$url" ]]; then
+              curl --fail --silent --max-time 5 "$url/api/v1/health" | jq -e '.code == 0 and .message == "ok"'
+              exit 0
+            fi
+            kill -0 "$server" || break
+            sleep 0.1
+          done
+          cat "$log"
+          exit 1
 
       # ========== 生成的提交门禁必须能加载并执行 ==========
       - name: 提交门禁 — 初始化仓库并安装 hook

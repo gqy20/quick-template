@@ -1,4 +1,4 @@
-module {{#if repository_provider=='https://github.com'}}github.com/{{repository_username}}/{{project_slug}}{{#else}}{{repository_provider}}/{{repository_username}}/{{project_slug}}{{#endif}}
+module {{ go_module_path }}
 
 go {{ go_version }}
 

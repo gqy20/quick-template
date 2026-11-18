@@ -15,88 +15,35 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
 {{#if language == 'python'}}
-  test:
-    name: Python 测试
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: 安装 uv
-        uses: astral-sh/setup-uv@v10.0.1
+      - uses: astral-sh/setup-uv@v10.0.1
         with:
-          version: "latest"
           python-version: "{{ python_version }}"
-
-      - name: 安装依赖
-        run: uv sync --all-groups
-
-      - name: 运行 ruff 检查
-        run: uv run ruff check src tests scripts
-
-      - name: 运行 ruff 格式检查
-        run: uv run ruff format --check src tests scripts
-
-      - name: 运行 mypy 类型检查
-        run: uv run --all-extras mypy src/{{ package_name }}
-
-      - name: 运行测试
-        run: uv run pytest --cov=src/{{ package_name }} --cov-report=xml --cov-report=term-missing
 {{#elif language == 'golang'}}
-  test:
-    name: Go 测试
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: 设置 Go
-        uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version: "{{ go_version }}"
-
-      - name: 下载依赖
-        run: go mod download
-
-      - name: 运行 golangci-lint
-        uses: golangci/golangci-lint-action@v9
+      - name: 安装 golangci-lint
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/v2.15.0/install.sh \
+            | sh -s -- -b "$RUNNER_TEMP/bin" v2.15.0
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+{{#elif language == 'typescript'}}
+      - uses: actions/setup-node@v7
         with:
-          version: v2.15.0
-
-      - name: 运行 go vet
-        run: go vet ./...
-
-      - name: 运行测试
-        run: go test ./... -race -coverprofile=coverage.out -count=1
-
-      - name: 上传覆盖率
-        uses: codecov/codecov-action@v7
+          node-version: "{{ node_version }}"
+      - uses: pnpm/action-setup@v6
+{{#endif}}
+      - run: make install
+      - run: make check typecheck test-cov
+      - run: make build
+{{#if language == 'golang'}}
+      - uses: codecov/codecov-action@v7
         with:
           files: ./coverage.out
           fail_ci_if_error: false
-{{#elif language == 'typescript'}}
-  test:
-    name: TypeScript 测试
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: 设置 Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: "{{ node_version }}"
-
-      - name: 安装 pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: 安装依赖
-        run: pnpm install
-
-      - name: 运行 Biome 检查
-        run: pnpm exec biome check .
-
-      - name: 运行类型检查
-        run: pnpm exec tsc --noEmit
-
-      - name: 运行测试
-        run: pnpm exec vitest run --coverage
 {{#endif}}

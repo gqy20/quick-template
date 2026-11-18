@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
 """测试 quick-template 模板生成。CI 中通过 uv run 调用。"""
 
+import json
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
-
-from scaffold.files import copy_template_dir
-from scaffold.variables import ProjectVars
-
-TEMPLATE_ROOT = Path(__file__).resolve().parent
 
 
 def test_generate(
@@ -16,34 +13,40 @@ def test_generate(
     add_api: bool = True,
     has_frontend: bool = False,
     python_version: str = "3.13",
+    with_agent: bool = False,
+    with_publish: bool = False,
 ) -> Path:
-    """使用 scaffold 引擎生成项目。"""
-    extra = {
+    """通过已安装的 CLI 生成矩阵项目。"""
+    config = {
         "project_name": "Test Project",
         "author_name": "Test Author",
         "author_email": "test@example.com",
         "description": "A test project",
-        "version": "0.1.0",
-        "license": "MIT",
-        "line_length": 88,
-        "has_frontend": has_frontend,
+        "python_version": python_version,
     }
-    if language == "python":
-        extra["python_version"] = python_version
-
-    vars_dict = ProjectVars.build(None, language, add_api, extra).to_dict()
-
     dst = Path(tempfile.mkdtemp(prefix=f"quick-test-{language}-"))
-    print(f"  生成 {language} 项目 → {dst}")
-
-    lang_dir = TEMPLATE_ROOT / "languages" / language
-    shared_dir = TEMPLATE_ROOT / "shared"
-
-    if lang_dir.exists():
-        copy_template_dir(lang_dir, dst, vars_dict)
-    if shared_dir.exists():
-        copy_template_dir(shared_dir, dst, vars_dict)
-
+    with tempfile.TemporaryDirectory() as tmp:
+        data_file = Path(tmp) / "project.json"
+        data_file.write_text(json.dumps(config), encoding="utf-8")
+        command = [
+            "uv",
+            "run",
+            "quick-template",
+            "--language",
+            language,
+            "--data-file",
+            str(data_file),
+            "--output-dir",
+            str(dst),
+        ]
+        command.append("--add-api" if add_api else "--no-add-api")
+        if has_frontend:
+            command.append("--with-frontend")
+        if with_agent:
+            command.append("--with-agent")
+        if with_publish:
+            command.append("--with-publish")
+        subprocess.run(command, check=True)
     return dst
 
 
@@ -52,7 +55,9 @@ def main():
     add_api = sys.argv[2].lower() == "true" if len(sys.argv) > 2 else True
     has_frontend = sys.argv[3].lower() == "true" if len(sys.argv) > 3 else False
     python_version = sys.argv[4] if len(sys.argv) > 4 else "3.13"
-    dst = test_generate(language, add_api, has_frontend, python_version)
+    with_agent = len(sys.argv) > 5 and sys.argv[5].lower() == "true"
+    with_publish = len(sys.argv) > 6 and sys.argv[6].lower() == "true"
+    dst = test_generate(language, add_api, has_frontend, python_version, with_agent, with_publish)
     print(f"OK:{dst}")
 
 

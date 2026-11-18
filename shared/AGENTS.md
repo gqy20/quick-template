@@ -26,9 +26,11 @@
 - 依赖管理：uv
 - 源码：`src/{{ package_name }}/`
 - 测试：pytest；lint / format：Ruff；类型检查：Mypy
+{{#if with_agent}}
 - Agent 审计日志：`logs/agent/events.jsonl`，默认不得记录正文或工具值
 - `.mcp.json` 只声明连接；LangGraph MCP 工具还需在 Runtime 配置显式授权
 - Claude CLI 完整 transcript 默认使用临时目录，不写入用户全局 `~/.claude`
+{{#endif}}
 {{#elif language == 'golang'}}- 运行时：Go {{ go_version }}+
 - 依赖管理：Go Modules
 - 入口：`cmd/{{ project_slug }}/`
@@ -44,7 +46,6 @@
 ## 事实源与文档路由
 
 - 用户当前可用能力、安装与运行：`README.md`
-- Agent 执行规则：本文件
 {{#if has_frontend}}- 前端视觉与交互契约：`DESIGN.md`
 {{#endif}}- 版本变化：`docs/CHANGELOG.md`
 - 产品范围与边界：`docs/PRODUCT.md`
@@ -52,10 +53,12 @@
 - 工程命令：`Makefile`
 - 线上门禁：`.github/workflows/`
 {{#if language == 'python'}}- Python 依赖与工具配置：`pyproject.toml`
+{{#if with_agent}}
 - Claude Agent SDK 配置：`config/agent.yaml`、`config/prompts/`、
   `.mcp.json`、`.claude/skills/`
 - LangGraph 配置：`config/runtimes/langgraph.yaml`；工具适配：
   `src/{{ package_name }}/langgraph_tools.py`
+{{#endif}}
 {{#elif language == 'golang'}}- Go 模块与依赖：`go.mod`
 {{#elif language == 'typescript'}}- Node 依赖与脚本：`package.json`；锁文件：`pnpm-lock.yaml`
 {{#endif}}
@@ -121,12 +124,14 @@
 {{#endif}}
 {{#if language == 'python'}}- 保持 src layout；公共导出显式维护，不依赖隐式路径注入。
 - 同步与异步边界必须清楚，不在异步路径中执行无界阻塞操作。
+{{#if with_agent}}
 - 普通应用启动和默认测试保持离线；真实 Agent 只能通过显式入口运行。
 - Agent 日志只记录运行元数据、能力加载、工具名、字段名和用量；正文需另行授权。
 - Prompt 行为变化必须升级 YAML 版本；日志记录 Prompt ID、版本和摘要。
 - Session 需要 resume 时才启用 project 状态；不得把 runtime state 写进 `.claude/`。
 - Claude 与 LangGraph 共享 Prompt、输出模型和日志；不得伪造 MCP/Skills 等价语义。
 - LangGraph State 只保存可 checkpoint 数据；model、logger 和 Schema 放入 context。
+{{#endif}}
 {{#elif language == 'golang'}}- `internal/` 保存私有实现，`pkg/` 只放置真正稳定、可复用的公开能力。
 - 错误必须保留上下文并由调用方处理，不以日志代替错误返回。
 {{#elif language == 'typescript'}}- 保持 ESM 与严格类型；不得用 `any` 或无说明断言绕过契约。

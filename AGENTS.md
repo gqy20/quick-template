@@ -28,6 +28,7 @@
 - wheel 必须包含全部模板资源；缺资源属于发布阻断。
 - Python、Go、TypeScript 的 API / 非 API 六种组合都是受支持契约。
   `--with-frontend` 是附加维度，只决定是否生成 `DESIGN.md` 及其引用。
+- `--with-agent` 仅对 Python 开启两套运行时示例；`--with-publish` 开启标签发布。二者默认关闭。
 - 语言模板默认包管理器：Python 用 uv，TypeScript 用 pnpm。模板、CI 和文档
   必须保持一致。
 - 模板语法：`{{var}}`、`{{#if}}`/`{{#elif}}`/`{{#else}}`/`{{#endif}}`；
@@ -44,7 +45,6 @@
 
 - 安装、能力与用户边界：`README.md`
 - 版本与行为变化：`CHANGELOG.md`
-- Agent 维护契约：本文件
 - 生成项目 Agent 契约：`shared/AGENTS.md`
 - 生成项目专题文档规范：`shared/docs/README.md`
 - 智能体开发指南（Claude Agent SDK / LangGraph）：`agent-guide/`
@@ -56,6 +56,7 @@
 - MCP / Skills 配置：`languages/python/.mcp.json`、`.claude/skills/`
 - 文档站实现：`docs/`（Pages 发布目录，只放站点产物；内部证据不入其中）
 - 模板引擎契约：`src/scaffold/` 与 `tests/`
+- 生成项目的工程命令：`shared/Makefile` 提供目标，`languages/*/scripts/language.mk` 实现语言命令。
 - 线上真实门禁：`.github/workflows/test.yml`
 
 修改公共行为前先读相应测试；修改 CI 时保证本地验证命令与线上命令一致。
@@ -182,7 +183,6 @@ Go `go build ./... && go test ./...`。
 - 修改前端页面或组件前必须读取 `DESIGN.md`。
 - 稳定视觉规则更新 `DESIGN.md`；截图、对照、发现和修复记录作为仓库根的
   独立文档存放，不追加到稳定规范。
-- `CLAUDE.md` 不复制本文件；用 `@` 引入本文件并记录 Claude 专属差异。
 
 ## 交付与审查
 

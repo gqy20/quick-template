@@ -1,5 +1,5 @@
 ---
-name: "{{ project_name }}"
+name: "{{ project_name_escaped }}"
 status: baseline
 design:
   density: 5
@@ -45,22 +45,9 @@ motion:
 
 ## 1. 设计北极星
 
-**方向：克制、可信、内容优先。** 用户先看见当前任务、结论、证据和下一步；
-装饰只建立层级，不争夺注意力。
-
-- 密度 5/10、变化度 6/10、动效 4/10：平衡、允许非对称、只解释状态。
-- 每页一个主要任务和一个最高强调操作；结论与动作就地呈现，不用大留白掩盖
-  信息结构问题。
-- 事实、推断、建议和待审核状态必须可区分。
-
-信息顺序：
-
-```text
-上下文 → 结论 / 当前状态 → 依据 → 可执行动作 → 详细历史
-```
-
-页面说不清"在哪、发生了什么、下一步做什么"时，先修信息架构，不要加卡片、
-颜色或动画补救。
+- 每页围绕一个主要任务，给最重要的操作最高视觉强调。
+- 按上下文、当前状态或结论、依据、可执行动作、历史详情排列内容。
+- 区分已确认事实、推断、建议和待审核状态。动效用于解释状态变化。
 
 ## 2. 语义 Token
 
@@ -160,7 +147,8 @@ JetBrains Mono。不用装饰性衬线，不为“高级感”混用字体家族
 
 ```css
 .button {
-  min-height: 40px;                 /* 触摸目标 ≥44×44 由 padding 补足 */
+  min-height: 44px;
+  min-width: 44px;
   padding: 0 16px;
   border-radius: var(--radius-control);
   background: var(--accent);
@@ -174,8 +162,7 @@ JetBrains Mono。不用装饰性衬线，不为“高级感”混用字体家族
 .button:disabled { opacity: 0.6; cursor: not-allowed; }
 ```
 
-`focus-visible` 用 `outline` 而不是 `box-shadow`：不改变布局尺寸，也不被
-`overflow: hidden` 裁掉。
+用键盘检查位于容器边缘的按钮，确保焦点环完整可见。
 
 ### 输入与表单
 

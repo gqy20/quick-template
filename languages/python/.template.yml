@@ -2,3 +2,24 @@
 files:
   "src/{{ package_name }}/api.py": add_api
   "tests/test_api.py": add_api
+  ".claude/settings.json": with_agent
+  ".claude/skills/README.md": with_agent
+  ".mcp.json": with_agent
+  "config/agent.yaml": with_agent
+  "config/prompts/code-review.yaml": with_agent
+  "config/prompts/default.yaml": with_agent
+  "config/prompts/sentiment.yaml": with_agent
+  "config/prompts/summary.yaml": with_agent
+  "config/runtimes/langgraph.yaml": with_agent
+  "examples/claude_agent_guard.py": with_agent
+  "examples/langgraph_review.py": with_agent
+  "src/{{package_name}}/agent.py": with_agent
+  "src/{{package_name}}/agent_log.py": with_agent
+  "src/{{package_name}}/agent_models.py": with_agent
+  "src/{{package_name}}/agent_state.py": with_agent
+  "src/{{package_name}}/langgraph_agent.py": with_agent
+  "src/{{package_name}}/langgraph_tools.py": with_agent
+  "src/{{package_name}}/prompt.py": with_agent
+  "tests/test_agent.py": with_agent
+  "tests/test_langgraph_agent.py": with_agent
+  "tests/test_langgraph_tools.py": with_agent

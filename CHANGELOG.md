@@ -4,58 +4,26 @@
 
 ### Added
 
-- README 增加「交给 Agent 的开场白」：一段自包含的文本，粘给任意编码
-  Agent 后由它安装工具、按需求选变体、生成项目并接手 AGENTS.md；同时列出
-  可覆盖的变量清单。
-- CLI 生成结束后打印下一步（`make install && make all` 与阅读 `AGENTS.md`）。
-- CI 验证 TypeScript 构建产物（`dist/index.js` 与 `dist/index.d.ts`）；冒烟
-  测试覆盖 `--with-frontend` 生成的 Python 项目与分发清单不泄漏；每个语言
-  在代表性变体上跑一次 `make all`。
-- 新增 Python 3.11 变体，验证最旧的受支持版本；`test_template.py` 增加
-  `python_version` 参数。
-- 根仓库新增 Dependabot（uv 与 GitHub Actions）。
-- 生成项目的 `AgentConfig` 增加 `sandbox`，整段透传给 Claude Code 的 OS 级
-  沙箱；`AgentRunner` 增加 `hooks` 与 `can_use_tool` 注入点，用于确定性拦截
-  与人工确认。
-- 新增 `examples/claude_agent_guard.py`：PreToolUse 路径拦截与终端审批，
-  默认离线，需显式 `--run`。
+- Python 项目可用 `--with-agent` 生成 Claude Agent SDK 与 LangGraph 示例。Claude 示例支持沙箱、工具调用钩子和审批，`examples/claude_agent_guard.py` 默认离线。
+- `--with-publish` 启用标签发布。Python 和 TypeScript 将同一批构建产物用于注册表上传和 GitHub Release，Go 仅创建 Release。
+- CLI 生成后提示首次安装与自检命令。README 提供可直接交给编码 Agent 的生成指令。
+- Agent 开发指南补充 Runtime 选型、沙箱边界和工具审批示例。前端设计规范补充键盘焦点 Token 和按钮状态示例。
+- 根仓库新增 Dependabot 配置，跟踪 uv 依赖与 GitHub Actions。
+
+### Changed
+
+- 语言模板实现 Make 目标，本地和 CI 调用相同的工程命令。Go 的 `make check` 需要 golangci-lint v2.15.0，`make install` 通过 `go mod tidy` 生成依赖校验文件。
+- Python 普通项目使用基础依赖；启用 Agent 时，类型检查包含两套 Runtime 的 extras。
+- TypeScript 的 `make run` 在 API 项目启动 Hono 服务（默认端口 3000），在 CLI 项目输出后退出。
+- CI 通过真实 CLI 生成项目，检查首次安装、类型声明、HTTP 健康端点和 wheel 模板资源。最低版本任务在 Python 3.11 上运行测试并断言解释器版本。
 
 ### Fixed
 
-- 生成项目的 `make typecheck` 改用 `uv run --all-extras`：此前未装可选依赖时
-  mypy 会把条件忽略注释判为多余，`make all` 在全新项目里直接失败。
-- 生成项目的 Python CI 同样改用 `uv run --all-extras mypy`，避免首次推送就
-  因 unused-ignore 变红。
-- 生成项目的 `make install` 去掉多余的 `uv venv`，重复执行不再因 `.venv`
-  已存在而中断。
-- Python 模板删除重复定义的 `commit-msg-lint` hook，提交信息校验不再跑两次。
-- 生成项目的验证阶梯在未启用前端时不再跳过第 5 项。
-
-### Changed
-- Go 项目的 `make check` 改用 `gofmt` + `go vet`，`make format` 去掉未安装的
-  `goimports`，`make install` 改用 `go mod tidy` 生成完整 `go.sum`；
-  `golangci-lint` 仍由生成 CI 运行，`make install && make all` 只需 Go 工具链。
-- `test_template.py` 不再覆盖 Go / Node 版本，CI 生成矩阵验证文档中的默认值。
-- 生成结果检查改为扫描任意 `{{` 标记（排除 `${{ }}`），可拦截写错的变量名。
-- README 补充 `--force` 不清理陈旧文件的边界，并移除 `DESIGN.md` 的行数描述。
-
-- `agent-guide` 的沙箱专题改为先讲 SDK 自带的 OS 级沙箱（只管 shell 命令、
-  默认读权限宽、失败会降级），外部沙箱作为更强隔离的备选；工具专题补充
-  hooks 与 `can_use_tool` 的用法和分工。
-- `agent-guide` 增加两种 Runtime 的能力分布表，标明哪些能力只有一条路径有。
-- 精简 `AGENTS.md`：删除文件用途声明、目的概述和重复表述（授权链、"开始前
-  明确范围"清单），生成的契约每个变体减少 16 行；根契约新增一条规则——
-  文档只写能改变行为或提供事实的内容。
-- 按 80/20 压缩文档：README 的 Agent Runtime 说明（41 行）改为指向
-  `agent-guide/`；`shared/AGENTS.md` 合并文档规则、外部系统与发布、
-  Code Review 三处重复；`shared/DESIGN.md` 压缩设计北极星、字体层级和
-  Design QA。四份文档合计减少约 98 行。
-- 根 `AGENTS.md` 的文档规则增加 80/20 与「能写成命令、类型或示例的，不写成
-  描述」两条；Code Review Rules 与完成标准合并为「交付与审查」。
-- 根 `AGENTS.md` 再删 6 处重复（第二模板源、预建抽象、`src/scaffold` 路径、
-  唯一模板源、Design QA 归属、只读入口）并收紧 3 处措辞，214 → 203 行。
-- `DESIGN.md` 把按钮的尺寸、焦点、按压与禁用态改为 CSS 示例，Token 一节
-  增加语义层对照；补充 `focus` 颜色 Token（参考站点已在用，契约此前缺失）。
+- 生成前检查共享和语言模板的输出路径，拒绝通过符号链接写到项目外。
+- 显式 CLI 选项覆盖配置文件，新增 `--no-frontend`。生成配置和源码时转义元数据中的引号、反斜杠和换行；许可证仅接受 MIT。
+- Python 自动包名避开关键字；显式非法导入名会报错。Go 从仓库 URL 派生模块路径，支持多级命名空间。
+- Python 新项目可在 Git 初始化前安装依赖并执行自检。依赖安装可重复执行，克隆后的 hook 安装命令同时启用 pre-commit 与 commit-msg。
+- 生成结果扫描可检出未替换的模板标记，同时保留 GitHub Actions 表达式。
 
 ## [0.4.0] - 2026-11-01
 

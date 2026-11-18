@@ -13,7 +13,7 @@ from scaffold.variables import ProjectVars
 TEMPLATE_ROOT = Path(__file__).resolve().parents[1]
 
 
-def generate_template(tmp_path, language, add_api, has_frontend=False):
+def generate_template(tmp_path, language, add_api, has_frontend=False, with_agent=False):
     output = tmp_path / f"{language}-{add_api}-{has_frontend}"
     variables = ProjectVars.build(
         None,
@@ -24,6 +24,7 @@ def generate_template(tmp_path, language, add_api, has_frontend=False):
             "author_name": "Test Author",
             "repository_username": "test-author",
             "has_frontend": has_frontend,
+            "with_agent": with_agent,
         },
     ).to_dict()
     copy_template_dir(TEMPLATE_ROOT / "shared", output, variables)
@@ -168,7 +169,7 @@ def test_generated_docs_have_no_broken_links(tmp_path):
 
 
 def test_python_agent_uses_native_mcp_skills_and_logging_config(tmp_path):
-    output = generate_template(tmp_path, "python", False)
+    output = generate_template(tmp_path, "python", False, with_agent=True)
 
     config = yaml.safe_load((output / "config" / "agent.yaml").read_text())
     mcp = json.loads((output / ".mcp.json").read_text())
